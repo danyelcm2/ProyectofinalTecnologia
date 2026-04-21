@@ -55,16 +55,16 @@ function app_config(): array
                 'simulated' => true,
             ],
 
-            'azure' => [
-                'label' => 'Azure SQL',
-                'driver' => 'sqlsrv',
-                'host' => 'tu-servidor.database.windows.net',
-                'port' => 1433,
-                'database' => 'kpi_db',
-                'username' => 'admin',
-                'password' => '',
-                'charset' => 'utf8mb4',
-                'simulated' => true,
+            'postgres' => [
+                'label' => 'PostgreSQL',
+                'driver' => 'pgsql',
+                'host' => '127.0.0.1',
+                'port' => 5432,
+                'database' => 'kpi_app_pg',
+                'username' => 'app_pg',
+                'password' => getenv('PG_DB_PASSWORD') ?: 'Password123!',
+                'charset' => 'UTF8',
+                'simulated' => false,
             ],
         ],
     ];

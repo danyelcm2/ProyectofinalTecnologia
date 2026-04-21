@@ -106,19 +106,45 @@ function db_validate_runtime_driver(string $key, array $meta): void
 
 function db_build_pdo(array $meta): PDO
 {
+    $driver = (string) ($meta['driver'] ?? 'mysql');
     $host = (string) ($meta['host'] ?? 'localhost');
     $port = (int) ($meta['port'] ?? 3306);
     $database = (string) ($meta['database'] ?? '');
     $charset = (string) ($meta['charset'] ?? 'utf8mb4');
 
-    $dsn = sprintf(
-        '%s:host=%s;port=%d;dbname=%s;charset=%s',
-        $meta['driver'],
-        $host,
-        $port,
-        $database,
-        $charset
-    );
+    if ($driver === 'pgsql') {
+        $dsn = sprintf(
+            'pgsql:host=%s;port=%d;dbname=%s;options=%s',
+            $host,
+            $port,
+            $database,
+            sprintf("'--client_encoding=%s'", $charset)
+        );
+
+        return new PDO($dsn, $meta['username'], $meta['password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_TIMEOUT => 5,
+        ]);
+    }
+
+    if ($driver === 'sqlsrv') {
+        $dsn = sprintf(
+            'sqlsrv:Server=%s,%d;Database=%s;LoginTimeout=5',
+            $host,
+            $port,
+            $database
+        );
+
+        return new PDO($dsn, $meta['username'], $meta['password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_TIMEOUT => 5,
+        ]);
+    }
+
+    $dsn = sprintf('%s:host=%s;port=%d;dbname=%s;charset=%s', $driver, $host, $port, $database, $charset);
 
     return new PDO($dsn, $meta['username'], $meta['password'], [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -130,23 +156,7 @@ function db_build_pdo(array $meta): PDO
 
 function db_build_runtime_pdo(string $key, array $meta): PDO
 {
-    $driver = db_runtime_driver($key, $meta);
-
-    if ($driver === 'sqlsrv') {
-        $dsn = sprintf(
-            'sqlsrv:Server=%s,%d;Database=%s;LoginTimeout=5',
-            $meta['host'],
-            (int) $meta['port'],
-            $meta['database']
-        );
-
-        return new PDO($dsn, $meta['username'], $meta['password'], [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_TIMEOUT => 5,
-        ]);
-    }
-
+    $meta['driver'] = db_runtime_driver($key, $meta);
     return db_build_pdo($meta);
 }
 
