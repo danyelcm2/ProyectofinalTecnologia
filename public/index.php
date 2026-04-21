@@ -32,7 +32,7 @@ function is_logged_in(): bool
 
 function requires_auth(string $page): bool
 {
-    return in_array($page, ['dashboard', 'connections', 'forms', 'logout', 'api_kpi', 'api_tables', 'api_columns', 'api_insert'], true);
+    return in_array($page, ['dashboard', 'connections', 'forms', 'logout', 'api_kpi', 'api_tables', 'api_columns', 'api_records', 'api_insert'], true);
 }
 
 $page = $_GET['page'] ?? (is_logged_in() ? 'dashboard' : 'login');
@@ -77,6 +77,10 @@ switch ($page) {
 
     case 'api_columns':
         (new ApiController())->columns();
+        break;
+
+    case 'api_records':
+        (new ApiController())->records();
         break;
 
     case 'api_insert':

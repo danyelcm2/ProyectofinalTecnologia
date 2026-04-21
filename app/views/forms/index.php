@@ -32,6 +32,20 @@ require __DIR__ . '/../layout/header.php';
                 </div>
             </form>
         </div>
+
+        <div class="chart-card mt-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h3 class="mb-0">Registros actuales</h3>
+                <span id="recordsMeta" class="form-text mt-0"></span>
+            </div>
+            <div id="recordsEmpty" class="form-text">Selecciona una tabla para ver sus registros actuales.</div>
+            <div id="recordsWrapper" class="records-table-wrapper d-none">
+                <table class="table table-sm align-middle mb-0">
+                    <thead id="recordsHead"></thead>
+                    <tbody id="recordsBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -48,9 +48,36 @@ class ConnectionController
             exit;
         }
 
+        $database = trim((string) ($_POST['database'] ?? ''));
+
         if (!db_connection_requires_verification($selected)) {
-            $_SESSION['db_connection'] = $selected;
-            $_SESSION['connection_flash'] = ['level' => 'success', 'message' => 'Conexion principal activada correctamente.'];
+            if ($database === '') {
+                $_SESSION['connection_flash'] = ['level' => 'danger', 'message' => 'Debes indicar la base de datos de MySQL.'];
+                header('Location: index.php?page=connections');
+                exit;
+            }
+
+            $runtimeMeta = $connections[$selected];
+            $runtimeMeta['database'] = $database;
+
+            try {
+                db_build_runtime_pdo($selected, $runtimeMeta);
+
+                db_store_connection_credentials($selected, [
+                    'host' => $runtimeMeta['host'],
+                    'port' => (int) $runtimeMeta['port'],
+                    'database' => $database,
+                    'username' => $runtimeMeta['username'],
+                    'password' => $runtimeMeta['password'],
+                    'charset' => $runtimeMeta['charset'],
+                ]);
+
+                $_SESSION['db_connection'] = $selected;
+                $_SESSION['connection_flash'] = ['level' => 'success', 'message' => 'Conexion MySQL activada correctamente.'];
+            } catch (Throwable $error) {
+                $_SESSION['connection_flash'] = ['level' => 'danger', 'message' => 'No fue posible conectar a la base de datos MySQL indicada.'];
+            }
+
             header('Location: index.php?page=connections');
             exit;
         }
@@ -58,7 +85,6 @@ class ConnectionController
         $totpCode = trim((string) ($_POST['totp_code'] ?? ''));
         $host = trim((string) ($_POST['host'] ?? ''));
         $port = trim((string) ($_POST['port'] ?? ''));
-        $database = trim((string) ($_POST['database'] ?? ''));
         $username = trim((string) ($_POST['username'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
 

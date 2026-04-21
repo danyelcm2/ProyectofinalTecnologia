@@ -139,6 +139,87 @@
         box.innerHTML = '<div class="alert alert-' + level + ' py-2 mb-0">' + message + '</div>';
     }
 
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function renderRecordsTable(payload, table) {
+        const wrapper = document.getElementById('recordsWrapper');
+        const empty = document.getElementById('recordsEmpty');
+        const head = document.getElementById('recordsHead');
+        const body = document.getElementById('recordsBody');
+        const meta = document.getElementById('recordsMeta');
+
+        if (!wrapper || !empty || !head || !body || !meta) {
+            return;
+        }
+
+        if (!table) {
+            wrapper.classList.add('d-none');
+            head.innerHTML = '';
+            body.innerHTML = '';
+            meta.textContent = '';
+            empty.textContent = 'Selecciona una tabla para ver sus registros actuales.';
+            return;
+        }
+
+        const columns = Array.isArray(payload.columns) ? payload.columns : [];
+        const rows = Array.isArray(payload.rows) ? payload.rows : [];
+
+        if (columns.length === 0) {
+            wrapper.classList.add('d-none');
+            head.innerHTML = '';
+            body.innerHTML = '';
+            meta.textContent = '';
+            empty.textContent = 'La tabla seleccionada no tiene columnas disponibles para mostrar.';
+            return;
+        }
+
+        head.innerHTML = '<tr>' + columns.map(function (column) {
+            return '<th scope="col">' + escapeHtml(column) + '</th>';
+        }).join('') + '</tr>';
+
+        if (rows.length === 0) {
+            wrapper.classList.add('d-none');
+            body.innerHTML = '';
+            meta.textContent = 'Tabla: ' + table;
+            empty.textContent = 'La tabla seleccionada no tiene registros todavia.';
+            return;
+        }
+
+        body.innerHTML = rows.map(function (row) {
+            return '<tr>' + columns.map(function (column) {
+                const value = row[column];
+                return '<td>' + escapeHtml(value === null ? '' : value) + '</td>';
+            }).join('') + '</tr>';
+        }).join('');
+
+        meta.textContent = 'Tabla: ' + table + ' | Mostrando ' + rows.length + ' registros';
+        empty.textContent = '';
+        wrapper.classList.remove('d-none');
+    }
+
+    async function loadRecords(table) {
+        if (!table) {
+            renderRecordsTable({ columns: [], rows: [] }, '');
+            return;
+        }
+
+        const result = await getJson('index.php?page=api_records&table=' + encodeURIComponent(table));
+        if (!result.ok) {
+            renderRecordsTable({ columns: [], rows: [] }, table);
+            renderAlert(result.message || 'No se pudieron cargar los registros', 'danger');
+            return;
+        }
+
+        renderRecordsTable(result.data || { columns: [], rows: [] }, table);
+    }
+
     async function loadTables() {
         const select = document.getElementById('tableSelect');
         if (!select) {
@@ -170,6 +251,7 @@
         tableInput.value = table;
 
         if (!table) {
+            renderRecordsTable({ columns: [], rows: [] }, '');
             return;
         }
 
@@ -219,6 +301,7 @@
 
         select.addEventListener('change', function () {
             loadColumns(this.value);
+            loadRecords(this.value);
         });
 
         form.addEventListener('submit', async function (event) {
@@ -238,6 +321,8 @@
 
             renderAlert(result.message, 'success');
             form.reset();
+            document.getElementById('tableInput').value = select.value;
+            loadRecords(select.value);
         });
     }
 

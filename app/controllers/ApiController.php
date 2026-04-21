@@ -53,6 +53,20 @@ class ApiController
         }
     }
 
+    public function records(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        try {
+            $table = (string) ($_GET['table'] ?? '');
+            $schema = new SchemaModel();
+            echo json_encode(['ok' => true, 'data' => $schema->records($table)]);
+        } catch (Throwable $error) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'message' => 'No se pudieron cargar los registros de la tabla']);
+        }
+    }
+
     public function insert(): void
     {
         header('Content-Type: application/json; charset=utf-8');

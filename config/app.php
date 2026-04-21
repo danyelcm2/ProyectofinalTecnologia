@@ -26,7 +26,7 @@ function app_config(): array
                 'port' => 3306,
                 'database' => 'kpi_app_mysql',
                 'username' => 'app_user',
-                'password' => getenv('DB_PASSWORD'),
+                'password' => 'Password123!',
                 'charset' => 'utf8mb4',
                 'simulated' => false,
             ],

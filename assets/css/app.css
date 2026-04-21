@@ -164,6 +164,31 @@ body {
     border-top: 1px solid #e6ebf1;
 }
 
+.records-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #e6ebf1;
+    border-radius: 0.9rem;
+}
+
+.records-table-wrapper table {
+    min-width: 100%;
+    margin: 0;
+}
+
+.records-table-wrapper thead th {
+    position: sticky;
+    top: 0;
+    background: #f5f8fc;
+    white-space: nowrap;
+}
+
+.records-table-wrapper tbody td {
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 @media (max-width: 992px) {
     .dashboard-shell {
         flex-direction: column;

@@ -122,6 +122,32 @@ class SchemaModel
         $stmt->execute();
     }
 
+    public function records(string $table, int $limit = 25): array
+    {
+        $table = $this->sanitizeIdentifier($table);
+        $columns = $this->columns($table);
+        $fieldNames = array_map(static fn(array $column): string => (string) $column['field'], $columns);
+        $safeLimit = max(1, min($limit, 100));
+
+        if ($fieldNames === []) {
+            return [
+                'columns' => [],
+                'rows' => [],
+            ];
+        }
+
+        $quotedFields = implode(', ', array_map(fn(string $field): string => $this->quoteIdentifier($field), $fieldNames));
+        $sql = 'SELECT ' . $quotedFields . ' FROM ' . $this->quoteIdentifier($table) . $this->recordsOrderBy($columns) . ' LIMIT ' . $safeLimit;
+
+        $pdo = db_connect();
+        $rows = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'columns' => $fieldNames,
+            'rows' => $rows,
+        ];
+    }
+
     public function sanitizeIdentifier(string $identifier): string
     {
         if (!preg_match('/^[a-zA-Z0-9_]+$/', $identifier)) {
@@ -204,6 +230,17 @@ class SchemaModel
         }
 
         return $map;
+    }
+
+    private function recordsOrderBy(array $columns): string
+    {
+        foreach ($columns as $column) {
+            if ((string) ($column['key'] ?? '') === 'PRI') {
+                return ' ORDER BY ' . $this->quoteIdentifier((string) $column['field']) . ' DESC';
+            }
+        }
+
+        return '';
     }
 
     private function foreignOptions(array $reference): array
