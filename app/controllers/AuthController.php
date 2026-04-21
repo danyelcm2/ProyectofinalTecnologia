@@ -91,12 +91,14 @@ class AuthController
 
         $issuer = app_config()['two_fa_issuer'];
         $otpauthUri = $secret !== '' ? Totp::provisioningUri($issuer, (string) $pendingUser['email'], $secret) : '';
+        $qrCodeUrl = $otpauthUri !== '' ? Totp::qrImageUrl($otpauthUri) : '';
 
         $viewData = [
             'title' => 'Verificacion 2FA',
             'error' => $error,
             'manualKey' => $secret,
             'otpauthUri' => $otpauthUri,
+            'qrCodeUrl' => $qrCodeUrl,
             'issuer' => $issuer,
             'email' => (string) $pendingUser['email'],
             'requiresSetup' => !empty($pendingUser['requires_2fa_setup']),

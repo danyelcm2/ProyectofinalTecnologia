@@ -30,6 +30,14 @@ final class Totp
         return "otpauth://totp/{$label}?secret={$secretParam}&issuer={$issuerParam}&algorithm=SHA1&digits=6&period=30";
     }
 
+    public static function qrImageUrl(string $otpauthUri, int $size = 220): string
+    {
+        $safeSize = max(120, min($size, 400));
+        $encoded = rawurlencode($otpauthUri);
+
+        return "https://api.qrserver.com/v1/create-qr-code/?size={$safeSize}x{$safeSize}&data={$encoded}";
+    }
+
     public static function verify(string $secret, string $code, int $window = 1): bool
     {
         if (!preg_match('/^[0-9]{6}$/', $code)) {

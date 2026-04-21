@@ -26,17 +26,29 @@ declare(strict_types=1);
                     <strong><?= !empty($viewData['requiresSetup']) ? 'Configura Google Authenticator para continuar.' : 'Usa tu app Google Authenticator para generar el codigo.'; ?></strong>
                 </div>
 
-                <?php if (!empty($viewData['requiresSetup'])): ?>
+                <?php if (!empty($viewData['manualKey'])): ?>
                     <div class="alert alert-secondary py-2 small">
                         Cuenta: <strong><?= htmlspecialchars((string) $viewData['email'], ENT_QUOTES, 'UTF-8'); ?></strong><br>
                         Emisor: <strong><?= htmlspecialchars((string) $viewData['issuer'], ENT_QUOTES, 'UTF-8'); ?></strong><br>
                         Clave manual: <strong><?= htmlspecialchars((string) $viewData['manualKey'], ENT_QUOTES, 'UTF-8'); ?></strong>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="otpauthUri" class="form-label text-white">Enlace de configuracion OTP</label>
-                        <textarea class="form-control" id="otpauthUri" rows="3" readonly><?= htmlspecialchars((string) $viewData['otpauthUri'], ENT_QUOTES, 'UTF-8'); ?></textarea>
-                        <div class="form-text text-white-50">Si no escaneas un QR, agrega la cuenta manualmente usando la clave secreta.</div>
+                    <div class="row g-3 align-items-center mb-3">
+                        <div class="col-12 col-md-5 text-center">
+                            <?php if (!empty($viewData['qrCodeUrl'])): ?>
+                                <img
+                                    src="<?= htmlspecialchars((string) $viewData['qrCodeUrl'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    alt="QR para Google Authenticator"
+                                    class="img-fluid rounded bg-white p-2"
+                                    style="max-width: 220px;"
+                                >
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-12 col-md-7">
+                            <label for="otpauthUri" class="form-label text-white">Enlace de configuracion OTP</label>
+                            <textarea class="form-control" id="otpauthUri" rows="4" readonly><?= htmlspecialchars((string) $viewData['otpauthUri'], ENT_QUOTES, 'UTF-8'); ?></textarea>
+                            <div class="form-text text-white-50">Escanea el QR o agrega la cuenta manualmente usando la clave secreta.</div>
+                        </div>
                     </div>
                 <?php endif; ?>
 
