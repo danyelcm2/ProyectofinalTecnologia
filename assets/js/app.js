@@ -71,8 +71,8 @@
         document.querySelector('[data-metric="totalClientes"]').textContent = String(Math.round(summary.totalClientes));
 
         mountOrUpdateChart('chartVentasDia', 'line', result.charts.ventasPorDia.labels, result.charts.ventasPorDia.data, 'Ventas por dia');
-        mountOrUpdateChart('chartCategorias', 'doughnut', result.charts.ventasPorCategoria.labels, result.charts.ventasPorCategoria.data, 'Ventas por categoria');
-        mountOrUpdateChart('chartPostres', 'bar', result.charts.topPostres.labels, result.charts.topPostres.data, 'Top postres');
+        mountOrUpdateChart('chartCategorias', 'doughnut', result.charts.ventasPorCategoria.labels, result.charts.ventasPorCategoria.data, 'Ventas por cliente');
+        mountOrUpdateChart('chartPostres', 'bar', result.charts.topPostres.labels, result.charts.topPostres.data, 'Top productos');
 
         const meta = document.getElementById('kpiMeta');
         if (meta) {
@@ -85,8 +85,14 @@
         if (type.includes('int') || type.includes('decimal') || type.includes('float') || type.includes('double')) {
             return 'number';
         }
-        if (type.includes('date') || type.includes('time')) {
+        if (type.includes('timestamp') || type.includes('datetime')) {
             return 'datetime-local';
+        }
+        if (type === 'date' || (type.includes('date') && !type.includes('time'))) {
+            return 'date';
+        }
+        if (type.includes('time')) {
+            return 'time';
         }
         return 'text';
     }

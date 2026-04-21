@@ -23,24 +23,27 @@ class KpiModel
         return [
             'ventasPorDia' => $this->dataset(
                 $pdo,
-                'SELECT DATE(fecha) AS etiqueta, SUM(total) AS valor FROM ventas GROUP BY DATE(fecha) ORDER BY DATE(fecha) DESC LIMIT 14',
+                'SELECT CAST(fecha AS DATE) AS etiqueta, COALESCE(SUM(total), 0) AS valor
+                 FROM ventas
+                 GROUP BY CAST(fecha AS DATE)
+                 ORDER BY CAST(fecha AS DATE) DESC
+                 LIMIT 14',
                 true
             ),
             'ventasPorCategoria' => $this->dataset(
                 $pdo,
-                'SELECT c.nombre_categoria AS etiqueta, SUM(d.subtotal) AS valor
-                 FROM detalle_venta d
-                 JOIN postres p ON d.id_postre = p.id_postre
-                 JOIN categorias_postres c ON p.id_categoria = c.id_categoria
-                 GROUP BY c.nombre_categoria
+                'SELECT c.nombre AS etiqueta, COALESCE(SUM(v.total), 0) AS valor
+                 FROM ventas v
+                 JOIN clientes c ON c.id = v.cliente_id
+                 GROUP BY c.nombre
                  ORDER BY valor DESC'
             ),
             'topPostres' => $this->dataset(
                 $pdo,
-                'SELECT p.nombre_postre AS etiqueta, SUM(d.cantidad) AS valor
-                 FROM detalle_venta d
-                 JOIN postres p ON d.id_postre = p.id_postre
-                 GROUP BY p.nombre_postre
+                'SELECT p.nombre AS etiqueta, COALESCE(SUM(d.cantidad), 0) AS valor
+                 FROM detalle_ventas d
+                 JOIN productos p ON p.id = d.producto_id
+                 GROUP BY p.nombre
                  ORDER BY valor DESC
                  LIMIT 8'
             ),
