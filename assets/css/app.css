@@ -1,0 +1,150 @@
+:root {
+    --bg: #f6f8fb;
+    --surface: #ffffff;
+    --ink: #1f2d3d;
+    --brand: #1f6aa5;
+    --brand-2: #158f77;
+    --muted: #6c7a89;
+    --accent: #f2994a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(circle at top right, #dbefff 0%, var(--bg) 35%, #eef2f7 100%);
+}
+
+.auth-body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: linear-gradient(130deg, #0f2a43 0%, #1f6aa5 45%, #2c8d7f 100%);
+}
+
+.auth-wrapper {
+    width: min(520px, 100%);
+}
+
+.auth-card {
+    background: rgba(9, 32, 52, 0.76);
+    backdrop-filter: blur(12px);
+    border-radius: 1rem;
+}
+
+.dashboard-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.app-sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #12273a 0%, #1f2d3d 100%);
+    color: #ffffff;
+    padding: 2rem 1.25rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-title {
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.brand-subtitle {
+    margin: 0.2rem 0 0;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.9rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: rgba(255, 255, 255, 0.84);
+    text-decoration: none;
+    border-radius: 0.7rem;
+    padding: 0.65rem 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    color: #ffffff;
+    background: rgba(21, 143, 119, 0.32);
+}
+
+.app-main {
+    flex: 1;
+    padding: 1.4rem 1.4rem 2rem;
+}
+
+.app-navbar {
+    background: linear-gradient(90deg, #1f6aa5 0%, #158f77 100%);
+    border-radius: 1rem;
+    padding: 0.9rem 1.1rem;
+}
+
+.connection-badge {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    padding: 0.45rem 0.75rem;
+}
+
+.page-intro h2 {
+    font-weight: 700;
+    margin: 0;
+}
+
+.metric-card,
+.chart-card,
+.connection-card {
+    background: var(--surface);
+    border-radius: 1rem;
+    padding: 1rem;
+    border: 1px solid #e6ebf1;
+    box-shadow: 0 7px 18px rgba(20, 42, 60, 0.06);
+    height: 100%;
+}
+
+.metric-label {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.metric-value {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 1.35rem;
+}
+
+.chart-card h3,
+.connection-card h3 {
+    font-size: 1rem;
+    margin: 0 0 0.75rem;
+}
+
+.connection-card.selected {
+    border-color: #158f77;
+    box-shadow: 0 10px 22px rgba(21, 143, 119, 0.18);
+}
+
+.secondary-connection-form {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #e6ebf1;
+}
+
+@media (max-width: 992px) {
+    .dashboard-shell {
+        flex-direction: column;
+    }
+
+    .app-sidebar {
+        width: 100%;
+    }
+}
