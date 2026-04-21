@@ -12,7 +12,7 @@ require_once __DIR__ . '/../app/controllers/ApiController.php';
 
 $config = app_config();
 
-session_name($config['session_name']);
+session_name($config['session_name'] ?? 'kpi_session');
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',

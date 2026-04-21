@@ -3,14 +3,18 @@
 function app_config(): array
 {
     return [
+        'session_name' => 'kpi_session',
+        'two_fa_issuer' => 'KPI App',
         'default_connection' => 'mysql',
 
         'auth_connection' => [
             'driver' => 'mysql',
             'host' => 'localhost',
+            'port' => 3306,
             'database' => 'proyectofinal_seguridad',
             'username' => 'app_user',
             'password' => getenv('DB_PASSWORD') ?: 'Password123!',
+            'charset' => 'utf8mb4',
         ],
 
         'connections' => [
@@ -19,9 +23,11 @@ function app_config(): array
                 'label' => 'MySQL',
                 'driver' => 'mysql',
                 'host' => 'localhost',
+                'port' => 3306,
                 'database' => 'proyectofinal_seguridad',
                 'username' => 'app_user',
                 'password' => getenv('DB_PASSWORD'),
+                'charset' => 'utf8mb4',
                 'simulated' => false,
             ],
 
@@ -29,9 +35,11 @@ function app_config(): array
                 'label' => 'SQL Server',
                 'driver' => 'sqlsrv',
                 'host' => 'localhost',
+                'port' => 1433,
                 'database' => 'master',
                 'username' => 'sa',
                 'password' => '',
+                'charset' => 'utf8mb4',
                 'simulated' => true,
             ],
 
@@ -39,9 +47,11 @@ function app_config(): array
                 'label' => 'Google Cloud SQL',
                 'driver' => 'mysql',
                 'host' => '127.0.0.1',
+                'port' => 3306,
                 'database' => 'ventas_postres',
                 'username' => 'root',
                 'password' => '',
+                'charset' => 'utf8mb4',
                 'simulated' => true,
             ],
 
@@ -49,9 +59,11 @@ function app_config(): array
                 'label' => 'Azure SQL',
                 'driver' => 'sqlsrv',
                 'host' => 'tu-servidor.database.windows.net',
+                'port' => 1433,
                 'database' => 'kpi_db',
                 'username' => 'admin',
                 'password' => '',
+                'charset' => 'utf8mb4',
                 'simulated' => true,
             ],
         ],

@@ -106,13 +106,18 @@ function db_validate_runtime_driver(string $key, array $meta): void
 
 function db_build_pdo(array $meta): PDO
 {
+    $host = (string) ($meta['host'] ?? 'localhost');
+    $port = (int) ($meta['port'] ?? 3306);
+    $database = (string) ($meta['database'] ?? '');
+    $charset = (string) ($meta['charset'] ?? 'utf8mb4');
+
     $dsn = sprintf(
         '%s:host=%s;port=%d;dbname=%s;charset=%s',
         $meta['driver'],
-        $meta['host'],
-        (int) $meta['port'],
-        $meta['database'],
-        $meta['charset']
+        $host,
+        $port,
+        $database,
+        $charset
     );
 
     return new PDO($dsn, $meta['username'], $meta['password'], [
@@ -162,12 +167,12 @@ function db_connect(): PDO
     $key = db_selected_key();
     $meta = db_selected_meta();
     $cacheKey = $key . ':' . md5(json_encode([
-        'host' => $meta['host'],
-        'port' => $meta['port'],
-        'database' => $meta['database'],
-        'username' => $meta['username'],
-        'password' => $meta['password'],
-        'charset' => $meta['charset'],
+        'host' => $meta['host'] ?? 'localhost',
+        'port' => $meta['port'] ?? 3306,
+        'database' => $meta['database'] ?? '',
+        'username' => $meta['username'] ?? '',
+        'password' => $meta['password'] ?? '',
+        'charset' => $meta['charset'] ?? 'utf8mb4',
     ]));
 
     if (isset($pdoInstances[$cacheKey])) {
