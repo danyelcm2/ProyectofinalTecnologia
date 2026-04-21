@@ -23,6 +23,7 @@ class SchemaModel
         $table = $this->sanitizeIdentifier($table);
         $pdo = db_connect();
         $driver = $this->driver();
+        $foreignKeys = $this->foreignKeyMap($table);
 
         if ($driver === 'pgsql') {
             $stmt = $pdo->prepare(
@@ -73,6 +74,8 @@ class SchemaModel
                 'key' => $key,
                 'default' => $default,
                 'extra' => $extra,
+                'reference' => $foreignKeys[$field] ?? null,
+                'options' => isset($foreignKeys[$field]) ? $this->foreignOptions($foreignKeys[$field]) : [],
             ];
         }
 
@@ -141,5 +144,137 @@ class SchemaModel
     private function driver(): string
     {
         return (string) (db_selected_meta()['driver'] ?? 'mysql');
+    }
+
+    private function foreignKeyMap(string $table): array
+    {
+        $pdo = db_connect();
+        $driver = $this->driver();
+
+        if ($driver === 'pgsql') {
+            $stmt = $pdo->prepare(
+                "SELECT
+                    kcu.column_name AS source_column,
+                    ccu.table_name AS target_table,
+                    ccu.column_name AS target_column
+                 FROM information_schema.table_constraints tc
+                 JOIN information_schema.key_column_usage kcu
+                   ON tc.constraint_name = kcu.constraint_name
+                  AND tc.table_schema = kcu.table_schema
+                 JOIN information_schema.constraint_column_usage ccu
+                   ON ccu.constraint_name = tc.constraint_name
+                  AND ccu.table_schema = tc.table_schema
+                 WHERE tc.constraint_type = 'FOREIGN KEY'
+                   AND tc.table_schema = 'public'
+                   AND tc.table_name = :table_name"
+            );
+            $stmt->bindValue(':table_name', $table);
+            $stmt->execute();
+            $rows = $stmt->fetchAll();
+        } else {
+            $stmt = $pdo->prepare(
+                "SELECT
+                    COLUMN_NAME AS source_column,
+                    REFERENCED_TABLE_NAME AS target_table,
+                    REFERENCED_COLUMN_NAME AS target_column
+                 FROM information_schema.KEY_COLUMN_USAGE
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = :table_name
+                   AND REFERENCED_TABLE_NAME IS NOT NULL"
+            );
+            $stmt->bindValue(':table_name', $table);
+            $stmt->execute();
+            $rows = $stmt->fetchAll();
+        }
+
+        $map = [];
+        foreach ($rows as $row) {
+            $source = (string) ($row['source_column'] ?? '');
+            $targetTable = (string) ($row['target_table'] ?? '');
+            $targetColumn = (string) ($row['target_column'] ?? '');
+
+            if ($source === '' || $targetTable === '' || $targetColumn === '') {
+                continue;
+            }
+
+            $map[$source] = [
+                'table' => $this->sanitizeIdentifier($targetTable),
+                'column' => $this->sanitizeIdentifier($targetColumn),
+            ];
+        }
+
+        return $map;
+    }
+
+    private function foreignOptions(array $reference): array
+    {
+        $pdo = db_connect();
+        $table = $this->sanitizeIdentifier((string) ($reference['table'] ?? ''));
+        $idColumn = $this->sanitizeIdentifier((string) ($reference['column'] ?? 'id'));
+
+        if ($table === '' || $idColumn === '') {
+            return [];
+        }
+
+        $labelColumn = $this->resolveLabelColumn($table, $idColumn);
+        $quotedTable = $this->quoteIdentifier($table);
+        $quotedId = $this->quoteIdentifier($idColumn);
+        $quotedLabel = $this->quoteIdentifier($labelColumn);
+
+        $sql = 'SELECT ' . $quotedId . ' AS value, ' . $quotedLabel . ' AS label FROM ' . $quotedTable . ' ORDER BY ' . $quotedLabel . ' ASC LIMIT 500';
+        $rows = $pdo->query($sql)->fetchAll();
+
+        $options = [];
+        foreach ($rows as $row) {
+            $options[] = [
+                'value' => (string) ($row['value'] ?? ''),
+                'label' => (string) ($row['label'] ?? ''),
+            ];
+        }
+
+        return $options;
+    }
+
+    private function resolveLabelColumn(string $table, string $idColumn): string
+    {
+        $pdo = db_connect();
+        $quotedTable = $this->quoteIdentifier($table);
+        $driver = $this->driver();
+        $columns = [];
+
+        if ($driver === 'pgsql') {
+            $stmt = $pdo->prepare(
+                "SELECT column_name
+                 FROM information_schema.columns
+                 WHERE table_schema = 'public'
+                   AND table_name = :table_name"
+            );
+            $stmt->bindValue(':table_name', $table);
+            $stmt->execute();
+            $rows = $stmt->fetchAll();
+            foreach ($rows as $row) {
+                $columns[] = (string) ($row['column_name'] ?? '');
+            }
+        } else {
+            $rows = $pdo->query('DESCRIBE ' . $quotedTable)->fetchAll();
+            foreach ($rows as $row) {
+                $columns[] = (string) ($row['Field'] ?? '');
+            }
+        }
+
+        $preferred = ['nombre', 'name', 'descripcion', 'description', 'titulo', 'title', 'email'];
+        foreach ($preferred as $candidate) {
+            if (in_array($candidate, $columns, true)) {
+                return $candidate;
+            }
+        }
+
+        foreach ($columns as $column) {
+            if ($column !== $idColumn && !str_ends_with($column, '_id') && stripos($column, 'id_') !== 0) {
+                return $column;
+            }
+        }
+
+        return $idColumn;
     }
 }

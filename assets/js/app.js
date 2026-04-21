@@ -97,6 +97,40 @@
         return 'text';
     }
 
+    function shouldUseSelect(column) {
+        if (!column || !column.field) {
+            return false;
+        }
+
+        const isIdField = String(column.field).toLowerCase().endsWith('_id');
+        const hasOptions = Array.isArray(column.options) && column.options.length > 0;
+
+        return isIdField && hasOptions;
+    }
+
+    function buildSelectInput(column) {
+        const select = document.createElement('select');
+        select.className = 'form-select';
+        select.name = column.field;
+        select.required = !column.nullable && column.default === null;
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Selecciona una opcion';
+        placeholder.selected = true;
+        placeholder.disabled = !!select.required;
+        select.appendChild(placeholder);
+
+        column.options.forEach(function (optionData) {
+            const option = document.createElement('option');
+            option.value = String(optionData.value || '');
+            option.textContent = String(optionData.label || optionData.value || '');
+            select.appendChild(option);
+        });
+
+        return select;
+    }
+
     function renderAlert(message, level) {
         const box = document.getElementById('formAlert');
         if (!box) {
@@ -157,11 +191,16 @@
             label.className = 'form-label';
             label.textContent = column.field;
 
-            const input = document.createElement('input');
-            input.className = 'form-control';
-            input.name = column.field;
-            input.type = inferInputType(column.type);
-            input.required = !column.nullable && column.default === null;
+            let input;
+            if (shouldUseSelect(column)) {
+                input = buildSelectInput(column);
+            } else {
+                input = document.createElement('input');
+                input.className = 'form-control';
+                input.name = column.field;
+                input.type = inferInputType(column.type);
+                input.required = !column.nullable && column.default === null;
+            }
 
             col.appendChild(label);
             col.appendChild(input);

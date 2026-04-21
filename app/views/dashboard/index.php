@@ -39,19 +39,25 @@ require __DIR__ . '/../layout/header.php';
     <div class="col-12 col-xl-6">
         <div class="chart-card">
             <h3>Ventas por dia</h3>
-            <canvas id="chartVentasDia" height="140"></canvas>
+            <div class="chart-frame">
+                <canvas id="chartVentasDia"></canvas>
+            </div>
         </div>
     </div>
     <div class="col-12 col-xl-6">
         <div class="chart-card">
-            <h3>Ventas por categoria</h3>
-            <canvas id="chartCategorias" height="140"></canvas>
+            <h3>Ventas por cliente</h3>
+            <div class="chart-frame">
+                <canvas id="chartCategorias"></canvas>
+            </div>
         </div>
     </div>
     <div class="col-12">
         <div class="chart-card">
-            <h3>Top postres</h3>
-            <canvas id="chartPostres" height="110"></canvas>
+            <h3>Top productos</h3>
+            <div class="chart-frame">
+                <canvas id="chartPostres"></canvas>
+            </div>
         </div>
     </div>
 </section>

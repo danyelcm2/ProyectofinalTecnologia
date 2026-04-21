@@ -128,9 +128,34 @@ body {
     margin: 0 0 0.75rem;
 }
 
+.chart-frame {
+    position: relative;
+    height: 300px;
+    min-height: 300px;
+    max-height: 300px;
+}
+
+.chart-frame canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
 .connection-card.selected {
     border-color: #158f77;
     box-shadow: 0 10px 22px rgba(21, 143, 119, 0.18);
+}
+
+.btn-active-connection {
+    background: #158f77;
+    border-color: #158f77;
+    color: #ffffff;
+    cursor: not-allowed;
+}
+
+.btn-active-connection:hover {
+    background: #158f77;
+    border-color: #158f77;
+    color: #ffffff;
 }
 
 .secondary-connection-form {
@@ -146,5 +171,11 @@ body {
 
     .app-sidebar {
         width: 100%;
+    }
+
+    .chart-frame {
+        height: 240px;
+        min-height: 240px;
+        max-height: 240px;
     }
 }

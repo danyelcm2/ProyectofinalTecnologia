@@ -18,8 +18,9 @@ require __DIR__ . '/../layout/header.php';
     <?php foreach ($viewData['connections'] as $key => $connection): ?>
         <div class="col-12 col-md-6 col-xl-3">
             <form method="POST" action="index.php?page=select-connection" class="h-100">
+                <?php $isSelected = $viewData['selected'] === $key; ?>
                 <input type="hidden" name="connection" value="<?= htmlspecialchars((string) $key, ENT_QUOTES, 'UTF-8'); ?>">
-                <div class="connection-card h-100 <?= $viewData['selected'] === $key ? 'selected' : ''; ?>">
+                <div class="connection-card h-100 <?= $isSelected ? 'selected' : ''; ?>">
                     <h3><?= htmlspecialchars((string) $connection['label'], ENT_QUOTES, 'UTF-8'); ?></h3>
 
                     <?php if ($key !== 'mysql'): ?>
@@ -46,8 +47,12 @@ require __DIR__ . '/../layout/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <button type="submit" class="btn btn-outline-primary w-100 mt-3">
-                        <?= $viewData['selected'] === $key ? 'Conexion activa' : ($key === 'mysql' ? 'Usar conexion' : 'Verificar y conectar'); ?>
+                    <button
+                        type="submit"
+                        class="btn w-100 mt-3 <?= $isSelected ? 'btn-active-connection' : 'btn-outline-primary'; ?>"
+                        <?= $isSelected ? 'disabled aria-disabled="true"' : ''; ?>
+                    >
+                        <?= $isSelected ? 'Conexion activa' : ($key === 'mysql' ? 'Usar conexion' : 'Verificar y conectar'); ?>
                     </button>
                 </div>
             </form>
