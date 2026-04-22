@@ -164,8 +164,37 @@ body {
     border-top: 1px solid #e6ebf1;
 }
 
+.forms-layout .forms-card {
+    border-left: 4px solid #d5e8f9;
+}
+
+.forms-card--picker {
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.forms-card--generator {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fffc 100%);
+}
+
+.forms-card--records {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+}
+
+.forms-card .btn-outline-secondary {
+    border-color: #c8d5e5;
+    color: #425e7a;
+}
+
+.forms-card .btn-outline-secondary:hover {
+    background: #eaf1f9;
+    border-color: #a9c0d9;
+    color: #27445f;
+}
+
 .records-table-wrapper {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: 380px;
     border: 1px solid #e6ebf1;
     border-radius: 0.9rem;
 }

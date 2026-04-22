@@ -26,7 +26,7 @@ declare(strict_types=1);
                     <strong><?= !empty($viewData['requiresSetup']) ? 'Configura Google Authenticator para continuar.' : 'Usa tu app Google Authenticator para generar el codigo.'; ?></strong>
                 </div>
 
-                <?php if (!empty($viewData['manualKey'])): ?>
+                <?php if (!empty($viewData['requiresSetup']) && !empty($viewData['manualKey'])): ?>
                     <div class="alert alert-secondary py-2 small">
                         Cuenta: <strong><?= htmlspecialchars((string) $viewData['email'], ENT_QUOTES, 'UTF-8'); ?></strong><br>
                         Emisor: <strong><?= htmlspecialchars((string) $viewData['issuer'], ENT_QUOTES, 'UTF-8'); ?></strong><br>

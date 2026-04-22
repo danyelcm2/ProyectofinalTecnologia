@@ -59,8 +59,9 @@ class ApiController
 
         try {
             $table = (string) ($_GET['table'] ?? '');
+            $limit = (int) ($_GET['limit'] ?? 200);
             $schema = new SchemaModel();
-            echo json_encode(['ok' => true, 'data' => $schema->records($table)]);
+            echo json_encode(['ok' => true, 'data' => $schema->records($table, $limit)]);
         } catch (Throwable $error) {
             http_response_code(400);
             echo json_encode(['ok' => false, 'message' => 'No se pudieron cargar los registros de la tabla']);

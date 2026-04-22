@@ -2,6 +2,11 @@
     'use strict';
 
     const charts = {};
+    const recordsState = {
+        table: '',
+        columns: [],
+        rows: []
+    };
 
     function money(value) {
         return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(value);
@@ -9,7 +14,15 @@
 
     async function getJson(url, options) {
         const response = await fetch(url, options || {});
-        return response.json();
+
+        try {
+            return await response.json();
+        } catch (error) {
+            return {
+                ok: false,
+                message: 'Respuesta invalida del servidor'
+            };
+        }
     }
 
     function mountOrUpdateChart(id, type, labels, values, label) {
@@ -154,10 +167,21 @@
         const head = document.getElementById('recordsHead');
         const body = document.getElementById('recordsBody');
         const meta = document.getElementById('recordsMeta');
+        const exportBtn = document.getElementById('exportRecordsBtn');
+        const printBtn = document.getElementById('printRecordsBtn');
 
-        if (!wrapper || !empty || !head || !body || !meta) {
+        if (!wrapper || !empty || !head || !body || !meta || !exportBtn || !printBtn) {
             return;
         }
+
+        const columns = Array.isArray(payload.columns) ? payload.columns : [];
+        const rows = Array.isArray(payload.rows) ? payload.rows : [];
+        recordsState.table = table;
+        recordsState.columns = columns;
+        recordsState.rows = rows;
+
+        exportBtn.disabled = columns.length === 0;
+        printBtn.disabled = columns.length === 0;
 
         if (!table) {
             wrapper.classList.add('d-none');
@@ -167,9 +191,6 @@
             empty.textContent = 'Selecciona una tabla para ver sus registros actuales.';
             return;
         }
-
-        const columns = Array.isArray(payload.columns) ? payload.columns : [];
-        const rows = Array.isArray(payload.rows) ? payload.rows : [];
 
         if (columns.length === 0) {
             wrapper.classList.add('d-none');
@@ -184,11 +205,12 @@
             return '<th scope="col">' + escapeHtml(column) + '</th>';
         }).join('') + '</tr>';
 
+        wrapper.classList.remove('d-none');
+
         if (rows.length === 0) {
-            wrapper.classList.add('d-none');
-            body.innerHTML = '';
+            body.innerHTML = '<tr><td colspan="' + columns.length + '" class="text-center text-secondary py-3">No hay registros en esta tabla.</td></tr>';
             meta.textContent = 'Tabla: ' + table;
-            empty.textContent = 'La tabla seleccionada no tiene registros todavia.';
+            empty.textContent = '';
             return;
         }
 
@@ -201,7 +223,63 @@
 
         meta.textContent = 'Tabla: ' + table + ' | Mostrando ' + rows.length + ' registros';
         empty.textContent = '';
-        wrapper.classList.remove('d-none');
+    }
+
+    function exportRecordsAsCsv() {
+        if (recordsState.columns.length === 0) {
+            return;
+        }
+
+        const quote = function (value) {
+            const plain = value === null || value === undefined ? '' : String(value);
+            return '"' + plain.replace(/"/g, '""') + '"';
+        };
+
+        const lines = [];
+        lines.push(recordsState.columns.map(quote).join(','));
+
+        recordsState.rows.forEach(function (row) {
+            const line = recordsState.columns.map(function (column) {
+                return quote(row[column]);
+            }).join(',');
+            lines.push(line);
+        });
+
+        const csvContent = '\uFEFF' + lines.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const filename = (recordsState.table || 'registros') + '_export.csv';
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function printRecordsTable() {
+        const table = document.getElementById('recordsTable');
+        if (!table || recordsState.columns.length === 0) {
+            return;
+        }
+
+        const popup = window.open('', '_blank', 'width=1100,height=700');
+        if (!popup) {
+            return;
+        }
+
+        const title = 'Registros - ' + (recordsState.table || 'tabla');
+        popup.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml(title) + '</title>');
+        popup.document.write('<style>body{font-family:Segoe UI,Tahoma,sans-serif;padding:24px;color:#1f2d3d}h1{font-size:18px;margin:0 0 12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8e0ea;padding:8px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f6fb}</style>');
+        popup.document.write('</head><body>');
+        popup.document.write('<h1>' + escapeHtml(title) + '</h1>');
+        popup.document.write(table.outerHTML);
+        popup.document.write('</body></html>');
+        popup.document.close();
+        popup.focus();
+        popup.print();
     }
 
     async function loadRecords(table) {
@@ -210,7 +288,7 @@
             return;
         }
 
-        const result = await getJson('index.php?page=api_records&table=' + encodeURIComponent(table));
+        const result = await getJson('index.php?page=api_records&table=' + encodeURIComponent(table) + '&limit=500');
         if (!result.ok) {
             renderRecordsTable({ columns: [], rows: [] }, table);
             renderAlert(result.message || 'No se pudieron cargar los registros', 'danger');
@@ -293,11 +371,16 @@
     async function bindDynamicForm() {
         const select = document.getElementById('tableSelect');
         const form = document.getElementById('dynamicForm');
-        if (!select || !form) {
+        const exportBtn = document.getElementById('exportRecordsBtn');
+        const printBtn = document.getElementById('printRecordsBtn');
+        if (!select || !form || !exportBtn || !printBtn) {
             return;
         }
 
         await loadTables();
+
+        exportBtn.addEventListener('click', exportRecordsAsCsv);
+        printBtn.addEventListener('click', printRecordsTable);
 
         select.addEventListener('change', function () {
             loadColumns(this.value);
@@ -324,6 +407,11 @@
             document.getElementById('tableInput').value = select.value;
             loadRecords(select.value);
         });
+
+        if (select.value) {
+            loadColumns(select.value);
+            loadRecords(select.value);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
