@@ -74,6 +74,10 @@
     async function loadDashboard() {
         const result = await getJson('index.php?page=api_kpi');
         if (!result.ok) {
+            const meta = document.getElementById('kpiMeta');
+            if (meta) {
+                meta.textContent = result.message || 'No se pudieron cargar los KPIs con la base seleccionada.';
+            }
             return;
         }
 
@@ -307,6 +311,11 @@
         const result = await getJson('index.php?page=api_tables');
         if (!result.ok) {
             renderAlert('No se pudieron cargar tablas', 'danger');
+            return;
+        }
+
+        if (!Array.isArray(result.tables) || result.tables.length === 0) {
+            renderAlert('La base seleccionada no tiene tablas disponibles para generar formularios.', 'warning');
             return;
         }
 

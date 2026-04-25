@@ -61,7 +61,8 @@ class ConnectionController
             $runtimeMeta['database'] = $database;
 
             try {
-                db_build_runtime_pdo($selected, $runtimeMeta);
+                $pdo = db_build_runtime_pdo($selected, $runtimeMeta);
+                $this->assertMysqlOperationalSchema($pdo);
 
                 db_store_connection_credentials($selected, [
                     'host' => $runtimeMeta['host'],
@@ -74,6 +75,8 @@ class ConnectionController
 
                 $_SESSION['db_connection'] = $selected;
                 $_SESSION['connection_flash'] = ['level' => 'success', 'message' => 'Conexion MySQL activada correctamente.'];
+            } catch (InvalidArgumentException $error) {
+                $_SESSION['connection_flash'] = ['level' => 'danger', 'message' => $error->getMessage()];
             } catch (Throwable $error) {
                 $_SESSION['connection_flash'] = ['level' => 'danger', 'message' => 'No fue posible conectar a la base de datos MySQL indicada.'];
             }
@@ -141,5 +144,27 @@ class ConnectionController
 
         header('Location: index.php?page=connections');
         exit;
+    }
+
+    private function assertMysqlOperationalSchema(PDO $pdo): void
+    {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $requiredTables = ['ventas', 'clientes', 'detalle_ventas', 'productos'];
+        $rows = $driver === 'pgsql'
+            ? $pdo->query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'")->fetchAll(PDO::FETCH_NUM)
+            : $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_NUM);
+
+        if ($rows === []) {
+            throw new InvalidArgumentException('La base MySQL se conecto, pero no contiene tablas disponibles para trabajar.');
+        }
+
+        $availableTables = array_map(static fn(array $row): string => (string) $row[0], $rows);
+        $missingTables = array_values(array_diff($requiredTables, $availableTables));
+
+        if ($missingTables !== []) {
+            throw new InvalidArgumentException(
+                'La base MySQL se conecto, pero no contiene las tablas operativas requeridas: ' . implode(', ', $missingTables)
+            );
+        }
     }
 }
