@@ -406,7 +406,7 @@
         const csvBtn = document.getElementById('tablesCsvBtn');
         const excelBtn = document.getElementById('tablesExcelBtn');
 
-        if (!wrapper || !empty || !head || !body || !meta || !csvBtn || !excelBtn) {
+        if (!wrapper || !empty || !head || !body || !meta) {
             return;
         }
 
@@ -416,8 +416,12 @@
         explorerState.columns = columns;
         explorerState.rows = rows;
 
-        csvBtn.disabled = columns.length === 0;
-        excelBtn.disabled = columns.length === 0;
+        if (csvBtn) {
+            csvBtn.disabled = columns.length === 0;
+        }
+        if (excelBtn) {
+            excelBtn.disabled = columns.length === 0;
+        }
 
         if (!table || columns.length === 0) {
             wrapper.classList.add('d-none');
@@ -456,14 +460,18 @@
         const select = document.getElementById('tablesExplorerSelect');
         const csvBtn = document.getElementById('tablesCsvBtn');
         const excelBtn = document.getElementById('tablesExcelBtn');
-        if (!select || !csvBtn || !excelBtn) {
+        if (!select) {
             return;
         }
 
         await loadTablesInto('tablesExplorerSelect', 'tablesExplorerAlert');
 
-        csvBtn.addEventListener('click', exportExplorerAsCsv);
-        excelBtn.addEventListener('click', exportExplorerAsExcel);
+        if (csvBtn) {
+            csvBtn.addEventListener('click', exportExplorerAsCsv);
+        }
+        if (excelBtn) {
+            excelBtn.addEventListener('click', exportExplorerAsExcel);
+        }
 
         select.addEventListener('change', async function () {
             const table = this.value;
