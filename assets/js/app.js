@@ -119,10 +119,9 @@
             return false;
         }
 
-        const isIdField = String(column.field).toLowerCase().endsWith('_id');
         const hasOptions = Array.isArray(column.options) && column.options.length > 0;
 
-        return isIdField && hasOptions;
+        return hasOptions;
     }
 
     function buildSelectInput(column) {
@@ -378,23 +377,6 @@
         if (select.value) {
             loadColumns(select.value);
         }
-    }
-
-        const popup = window.open('', '_blank', 'width=1100,height=700');
-        if (!popup) {
-            return;
-        }
-
-        const title = 'Registros - ' + (recordsState.table || 'tabla');
-        popup.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml(title) + '</title>');
-        popup.document.write('<style>body{font-family:Segoe UI,Tahoma,sans-serif;padding:24px;color:#1f2d3d}h1{font-size:18px;margin:0 0 12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8e0ea;padding:8px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f6fb}</style>');
-        popup.document.write('</head><body>');
-        popup.document.write('<h1>' + escapeHtml(title) + '</h1>');
-        popup.document.write(table.outerHTML);
-        popup.document.write('</body></html>');
-        popup.document.close();
-        popup.focus();
-        popup.print();
     }
 
     function renderExplorerTable(payload, table) {

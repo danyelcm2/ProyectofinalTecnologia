@@ -66,6 +66,7 @@ class SchemaModel
             $key = (string) ($row['Key'] ?? $row['key'] ?? $row['key_name'] ?? '');
             $default = $row['Default'] ?? $row['default'] ?? $row['default_value'] ?? null;
             $extra = (string) ($row['Extra'] ?? $row['extra'] ?? '');
+            $reference = $foreignKeys[$field] ?? $this->inferReferenceFromField($field);
 
             $columns[] = [
                 'field' => $field,
@@ -74,8 +75,8 @@ class SchemaModel
                 'key' => $key,
                 'default' => $default,
                 'extra' => $extra,
-                'reference' => $foreignKeys[$field] ?? null,
-                'options' => isset($foreignKeys[$field]) ? $this->foreignOptions($foreignKeys[$field]) : [],
+                'reference' => $reference,
+                'options' => $reference !== null ? $this->foreignOptions($reference) : [],
             ];
         }
 
@@ -313,5 +314,133 @@ class SchemaModel
         }
 
         return $idColumn;
+    }
+
+    private function inferReferenceFromField(string $field): ?array
+    {
+        $fieldLower = strtolower($field);
+        if (!preg_match('/(^id[a-z0-9_]+$)|(_id$)/', $fieldLower)) {
+            return null;
+        }
+
+        $base = '';
+        if (str_ends_with($fieldLower, '_id')) {
+            $base = substr($fieldLower, 0, -3);
+        } elseif (str_starts_with($fieldLower, 'id_')) {
+            $base = substr($fieldLower, 3);
+        } elseif (str_starts_with($fieldLower, 'id')) {
+            $base = substr($fieldLower, 2);
+        }
+
+        $base = trim($base, '_');
+        if ($base === '') {
+            return null;
+        }
+
+        $availableTables = $this->tables();
+        $candidates = [
+            $base,
+            $base . 's',
+            $base . 'es',
+            rtrim($base, 's'),
+        ];
+
+        if (str_ends_with($base, 'es')) {
+            $candidates[] = substr($base, 0, -2);
+        }
+        if (str_ends_with($base, 's')) {
+            $candidates[] = substr($base, 0, -1);
+        }
+
+        $seen = [];
+        foreach ($candidates as $candidate) {
+            if ($candidate === '' || isset($seen[$candidate])) {
+                continue;
+            }
+            $seen[$candidate] = true;
+
+            if (!in_array($candidate, $availableTables, true)) {
+                continue;
+            }
+
+            $idColumn = $this->inferIdColumnForTable($candidate, $fieldLower, $base);
+            if ($idColumn === null) {
+                continue;
+            }
+
+            return [
+                'table' => $candidate,
+                'column' => $idColumn,
+            ];
+        }
+
+        return null;
+    }
+
+    private function inferIdColumnForTable(string $table, string $fieldLower, string $base): ?string
+    {
+        $columns = $this->tableColumns($table);
+        if ($columns === []) {
+            return null;
+        }
+
+        $byLower = [];
+        foreach ($columns as $column) {
+            $byLower[strtolower($column)] = $column;
+        }
+
+        $candidates = [
+            'id',
+            $fieldLower,
+            'id_' . $base,
+            'id' . $base,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (isset($byLower[$candidate])) {
+                return $byLower[$candidate];
+            }
+        }
+
+        return isset($byLower['id']) ? $byLower['id'] : null;
+    }
+
+    private function tableColumns(string $table): array
+    {
+        $pdo = db_connect();
+        $quotedTable = $this->quoteIdentifier($table);
+        $driver = $this->driver();
+        $columns = [];
+
+        if ($driver === 'pgsql') {
+            $stmt = $pdo->prepare(
+                "SELECT column_name
+                 FROM information_schema.columns
+                 WHERE table_schema = 'public'
+                   AND table_name = :table_name"
+            );
+            $stmt->bindValue(':table_name', $table);
+            $stmt->execute();
+            $rows = $stmt->fetchAll();
+
+            foreach ($rows as $row) {
+                $column = (string) ($row['column_name'] ?? '');
+                if ($column !== '') {
+                    $columns[] = $column;
+                }
+            }
+
+            return $columns;
+        }
+
+        $rows = $pdo->query('DESCRIBE ' . $quotedTable)->fetchAll();
+        foreach ($rows as $row) {
+            $column = (string) ($row['Field'] ?? '');
+            if ($column !== '') {
+                $columns[] = $column;
+            }
+        }
+
+        return $columns;
     }
 }
