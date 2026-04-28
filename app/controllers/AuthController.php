@@ -9,6 +9,11 @@ class AuthController
 {
     public function login(): void
     {
+        if (!empty($_SESSION['is_authenticated'])) {
+            header('Location: index.php?page=connections');
+            exit;
+        }
+
         $error = null;
         $email = '';
 
@@ -33,15 +38,20 @@ class AuthController
                         $userModel->storeTwoFactorSecret($user['id'], $secret);
                     }
 
-                    $_SESSION['pending_user'] = [
+                    session_regenerate_id(true);
+                    $_SESSION['user'] = [
                         'id' => $user['id'],
                         'name' => $user['name'],
                         'email' => $user['email'],
-                        'two_factor_secret' => $secret,
-                        'requires_2fa_setup' => $requiresSetup,
                     ];
+                    $_SESSION['is_authenticated'] = true;
+                    $_SESSION['two_factor_secret'] = $secret;
+                    $_SESSION['requires_2fa_setup'] = $requiresSetup;
+                    $_SESSION['db_2fa_verified'] = false;
 
-                    header('Location: index.php?page=verify-2fa');
+                    unset($_SESSION['pending_db_connection'], $_SESSION['db_connection']);
+
+                    header('Location: index.php?page=connections');
                     exit;
                 }
             }
@@ -58,14 +68,26 @@ class AuthController
 
     public function verifyTwoFactor(): void
     {
-        if (empty($_SESSION['pending_user'])) {
+        if (empty($_SESSION['is_authenticated'])) {
             header('Location: index.php?page=login');
             exit;
         }
 
+        if (empty($_SESSION['pending_db_connection'])) {
+            header('Location: index.php?page=connections');
+            exit;
+        }
+
         $error = null;
-        $pendingUser = $_SESSION['pending_user'];
-        $secret = (string) ($pendingUser['two_factor_secret'] ?? '');
+        $sessionUser = $_SESSION['user'] ?? [];
+        $secret = (string) ($_SESSION['two_factor_secret'] ?? '');
+
+        if ($secret === '' && !empty($sessionUser['email'])) {
+            $userModel = new UserModel();
+            $user = $userModel->findByEmail((string) $sessionUser['email']);
+            $secret = (string) ($user['two_factor_secret'] ?? '');
+            $_SESSION['two_factor_secret'] = $secret;
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $code = trim((string) ($_POST['code'] ?? ''));
@@ -77,12 +99,10 @@ class AuthController
             } elseif (!Totp::verify($secret, $code)) {
                 $error = 'Codigo incorrecto.';
             } else {
-                session_regenerate_id(true);
-                $_SESSION['user'] = $_SESSION['pending_user'];
-                $_SESSION['is_authenticated'] = true;
-                $_SESSION['db_connection'] = $_SESSION['db_connection'] ?? app_config()['default_connection'];
-
-                unset($_SESSION['pending_user']);
+                $_SESSION['db_connection'] = (string) $_SESSION['pending_db_connection'];
+                $_SESSION['db_2fa_verified'] = true;
+                $_SESSION['requires_2fa_setup'] = false;
+                unset($_SESSION['pending_db_connection']);
 
                 header('Location: index.php?page=dashboard');
                 exit;
@@ -90,19 +110,21 @@ class AuthController
         }
 
         $issuer = app_config()['two_fa_issuer'];
-        $requiresSetup = !empty($pendingUser['requires_2fa_setup']);
-        $otpauthUri = $requiresSetup && $secret !== '' ? Totp::provisioningUri($issuer, (string) $pendingUser['email'], $secret) : '';
+        $requiresSetup = !empty($_SESSION['requires_2fa_setup']);
+        $otpauthUri = $requiresSetup && $secret !== '' ? Totp::provisioningUri($issuer, (string) ($sessionUser['email'] ?? ''), $secret) : '';
         $qrCodeUrl = $otpauthUri !== '' ? Totp::qrImageUrl($otpauthUri) : '';
+        $connection = db_connection_meta((string) $_SESSION['pending_db_connection']);
 
         $viewData = [
-            'title' => 'Verificacion 2FA',
+            'title' => 'Confirmar acceso a base de datos',
             'error' => $error,
             'manualKey' => $requiresSetup ? $secret : '',
             'otpauthUri' => $otpauthUri,
             'qrCodeUrl' => $qrCodeUrl,
             'issuer' => $issuer,
-            'email' => (string) $pendingUser['email'],
+            'email' => (string) ($sessionUser['email'] ?? ''),
             'requiresSetup' => $requiresSetup,
+            'connectionLabel' => (string) ($connection['label'] ?? ''),
         ];
 
         require __DIR__ . '/../views/auth/twofa.php';

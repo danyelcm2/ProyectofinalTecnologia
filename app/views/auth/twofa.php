@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+
+$viewData = $viewData ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -15,8 +17,11 @@ declare(strict_types=1);
     <div class="auth-wrapper">
         <div class="card auth-card shadow-lg border-0">
             <div class="card-body p-4 p-md-5">
-                <h1 class="h3 mb-2 text-white">Verificacion 2FA</h1>
-                <p class="text-white-50 mb-3">Ingresa el codigo de 6 digitos generado por Google Authenticator.</p>
+                <h1 class="h3 mb-2 text-white">Confirmar acceso con 2FA</h1>
+                <p class="text-white-50 mb-3">
+                    Valida tu codigo de Google Authenticator para ingresar a
+                    <strong><?= htmlspecialchars((string) ($viewData['connectionLabel'] ?? 'la base seleccionada'), ENT_QUOTES, 'UTF-8'); ?></strong>.
+                </p>
 
                 <?php if (!empty($viewData['error'])): ?>
                     <div class="alert alert-danger py-2"><?= htmlspecialchars((string) $viewData['error'], ENT_QUOTES, 'UTF-8'); ?></div>
@@ -59,7 +64,7 @@ declare(strict_types=1);
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg w-100">Validar codigo</button>
                 </form>
-                <a href="index.php?page=login" class="btn btn-link text-white-50 w-100 mt-3">Volver al login</a>
+                <a href="index.php?page=connections" class="btn btn-link text-white-50 w-100 mt-3">Volver a seleccionar base de datos</a>
             </div>
         </div>
     </div>

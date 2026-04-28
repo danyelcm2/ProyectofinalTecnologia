@@ -8,6 +8,7 @@ require_once __DIR__ . '/../app/controllers/AuthController.php';
 require_once __DIR__ . '/../app/controllers/DashboardController.php';
 require_once __DIR__ . '/../app/controllers/ConnectionController.php';
 require_once __DIR__ . '/../app/controllers/FormController.php';
+require_once __DIR__ . '/../app/controllers/TableController.php';
 require_once __DIR__ . '/../app/controllers/ApiController.php';
 
 $config = app_config();
@@ -30,15 +31,30 @@ function is_logged_in(): bool
     return !empty($_SESSION['user']) && !empty($_SESSION['is_authenticated']);
 }
 
-function requires_auth(string $page): bool
+function has_db_access(): bool
 {
-    return in_array($page, ['dashboard', 'connections', 'forms', 'logout', 'api_kpi', 'api_tables', 'api_columns', 'api_records', 'api_insert'], true);
+    return !empty($_SESSION['db_connection']) && !empty($_SESSION['db_2fa_verified']);
 }
 
-$page = $_GET['page'] ?? (is_logged_in() ? 'dashboard' : 'login');
+function requires_login(string $page): bool
+{
+    return in_array($page, ['connections', 'select-connection', 'verify-2fa', 'dashboard', 'forms', 'tables', 'logout', 'api_kpi', 'api_tables', 'api_columns', 'api_records', 'api_insert'], true);
+}
 
-if (requires_auth($page) && !is_logged_in()) {
+function requires_db_access(string $page): bool
+{
+    return in_array($page, ['dashboard', 'forms', 'tables', 'api_kpi', 'api_tables', 'api_columns', 'api_records', 'api_insert'], true);
+}
+
+$page = $_GET['page'] ?? (is_logged_in() ? (has_db_access() ? 'dashboard' : 'connections') : 'login');
+
+if (requires_login($page) && !is_logged_in()) {
     header('Location: index.php?page=login');
+    exit;
+}
+
+if (requires_db_access($page) && !has_db_access()) {
+    header('Location: index.php?page=connections');
     exit;
 }
 
@@ -65,6 +81,10 @@ switch ($page) {
 
     case 'forms':
         (new FormController())->index();
+        break;
+
+    case 'tables':
+        (new TableController())->index();
         break;
 
     case 'api_kpi':

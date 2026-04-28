@@ -35,6 +35,9 @@ $connectionLabel = db_selected_meta()['label'];
                 <a class="sidebar-link <?= $active === 'forms' ? 'active' : ''; ?>" href="index.php?page=forms">
                     <i class="bi bi-ui-checks-grid"></i> Formularios dinamicos
                 </a>
+                <a class="sidebar-link <?= $active === 'tables' ? 'active' : ''; ?>" href="index.php?page=tables">
+                    <i class="bi bi-table"></i> Consulta de tablas
+                </a>
                 <a class="sidebar-link" href="index.php?page=logout">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </a>
