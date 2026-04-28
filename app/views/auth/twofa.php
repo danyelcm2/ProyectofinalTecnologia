@@ -19,8 +19,12 @@ $viewData = $viewData ?? [];
             <div class="card-body p-4 p-md-5">
                 <h1 class="h3 mb-2 text-white">Confirmar acceso con 2FA</h1>
                 <p class="text-white-50 mb-3">
-                    Valida tu codigo de Google Authenticator para ingresar a
-                    <strong><?= htmlspecialchars((string) ($viewData['connectionLabel'] ?? 'la base seleccionada'), ENT_QUOTES, 'UTF-8'); ?></strong>.
+                    <?php if (!empty($viewData['isLoginStep'])): ?>
+                        Valida tu codigo de Google Authenticator para completar el inicio de sesion.
+                    <?php else: ?>
+                        Valida tu codigo de Google Authenticator para ingresar a
+                        <strong><?= htmlspecialchars((string) ($viewData['connectionLabel'] ?? 'la base seleccionada'), ENT_QUOTES, 'UTF-8'); ?></strong>.
+                    <?php endif; ?>
                 </p>
 
                 <?php if (!empty($viewData['error'])): ?>
@@ -64,7 +68,9 @@ $viewData = $viewData ?? [];
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg w-100">Validar codigo</button>
                 </form>
-                <a href="index.php?page=connections" class="btn btn-link text-white-50 w-100 mt-3">Volver a seleccionar base de datos</a>
+                <a href="index.php?page=<?= !empty($viewData['isLoginStep']) ? 'login' : 'connections'; ?>" class="btn btn-link text-white-50 w-100 mt-3">
+                    <?= !empty($viewData['isLoginStep']) ? 'Volver al login' : 'Volver a seleccionar base de datos'; ?>
+                </a>
             </div>
         </div>
     </div>

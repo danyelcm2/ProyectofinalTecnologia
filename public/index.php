@@ -38,7 +38,7 @@ function has_db_access(): bool
 
 function requires_login(string $page): bool
 {
-    return in_array($page, ['connections', 'select-connection', 'verify-2fa', 'dashboard', 'forms', 'tables', 'logout', 'api_kpi', 'api_tables', 'api_columns', 'api_records', 'api_insert'], true);
+    return in_array($page, ['connections', 'select-connection', 'dashboard', 'forms', 'tables', 'logout', 'api_kpi', 'api_tables', 'api_columns', 'api_records', 'api_insert'], true);
 }
 
 function requires_db_access(string $page): bool
@@ -46,7 +46,10 @@ function requires_db_access(string $page): bool
     return in_array($page, ['dashboard', 'forms', 'tables', 'api_kpi', 'api_tables', 'api_columns', 'api_records', 'api_insert'], true);
 }
 
-$page = $_GET['page'] ?? (is_logged_in() ? (has_db_access() ? 'dashboard' : 'connections') : 'login');
+$page = $_GET['page']
+    ?? (!empty($_SESSION['pending_2fa_context'])
+        ? 'verify-2fa'
+        : (is_logged_in() ? (has_db_access() ? 'dashboard' : 'connections') : 'login'));
 
 if (requires_login($page) && !is_logged_in()) {
     header('Location: index.php?page=login');

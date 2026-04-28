@@ -2,7 +2,7 @@
     'use strict';
 
     const charts = {};
-    const recordsState = {
+    const explorerState = {
         table: '',
         columns: [],
         rows: []
@@ -173,95 +173,9 @@
             .replace(/'/g, '&#039;');
     }
 
-    function renderRecordsTable(payload, table) {
-        const wrapper = document.getElementById('recordsWrapper');
-        const empty = document.getElementById('recordsEmpty');
-        const head = document.getElementById('recordsHead');
-        const body = document.getElementById('recordsBody');
-        const meta = document.getElementById('recordsMeta');
-        const exportBtn = document.getElementById('exportRecordsBtn');
-        const printBtn = document.getElementById('printRecordsBtn');
-
-        if (!wrapper || !empty || !head || !body || !meta || !exportBtn || !printBtn) {
-            return;
-        }
-
-        const columns = Array.isArray(payload.columns) ? payload.columns : [];
-        const rows = Array.isArray(payload.rows) ? payload.rows : [];
-        recordsState.table = table;
-        recordsState.columns = columns;
-        recordsState.rows = rows;
-
-        exportBtn.disabled = columns.length === 0;
-        printBtn.disabled = columns.length === 0;
-
-        if (!table) {
-            wrapper.classList.add('d-none');
-            head.innerHTML = '';
-            body.innerHTML = '';
-            meta.textContent = '';
-            empty.textContent = 'Selecciona una tabla para ver sus registros actuales.';
-            return;
-        }
-
-        if (columns.length === 0) {
-            wrapper.classList.add('d-none');
-            head.innerHTML = '';
-            body.innerHTML = '';
-            meta.textContent = '';
-            empty.textContent = 'La tabla seleccionada no tiene columnas disponibles para mostrar.';
-            return;
-        }
-
-        head.innerHTML = '<tr>' + columns.map(function (column) {
-            return '<th scope="col">' + escapeHtml(column) + '</th>';
-        }).join('') + '</tr>';
-
-        wrapper.classList.remove('d-none');
-
-        if (rows.length === 0) {
-            body.innerHTML = '<tr><td colspan="' + columns.length + '" class="text-center text-secondary py-3">No hay registros en esta tabla.</td></tr>';
-            meta.textContent = 'Tabla: ' + table;
-            empty.textContent = '';
-            return;
-        }
-
-        body.innerHTML = rows.map(function (row) {
-            return '<tr>' + columns.map(function (column) {
-                const value = row[column];
-                return '<td>' + escapeHtml(value === null ? '' : value) + '</td>';
-            }).join('') + '</tr>';
-        }).join('');
-
-        meta.textContent = 'Tabla: ' + table + ' | Mostrando ' + rows.length + ' registros';
-        empty.textContent = '';
-    }
-
-    function exportRecordsAsCsv() {
-        if (recordsState.columns.length === 0) {
-            return;
-        }
-
-        const quote = function (value) {
-            const plain = value === null || value === undefined ? '' : String(value);
-            return '"' + plain.replace(/"/g, '""') + '"';
-        };
-
-        const lines = [];
-        lines.push(recordsState.columns.map(quote).join(','));
-
-        recordsState.rows.forEach(function (row) {
-            const line = recordsState.columns.map(function (column) {
-                return quote(row[column]);
-            }).join(',');
-            lines.push(line);
-        });
-
-        const csvContent = '\uFEFF' + lines.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    function downloadBlob(content, mimeType, filename) {
+        const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
-        const filename = (recordsState.table || 'registros') + '_export.csv';
-
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', filename);
@@ -271,43 +185,58 @@
         URL.revokeObjectURL(url);
     }
 
-    function printRecordsTable() {
-        const table = document.getElementById('recordsTable');
-        if (!table || recordsState.columns.length === 0) {
-            return;
+    function buildCsvFromState(state) {
+        if (state.columns.length === 0) {
+            return '';
         }
 
-        const popup = window.open('', '_blank', 'width=1100,height=700');
-        if (!popup) {
-            return;
-        }
+        const quote = function (value) {
+            const plain = value === null || value === undefined ? '' : String(value);
+            return '"' + plain.replace(/"/g, '""') + '"';
+        };
 
-        const title = 'Registros - ' + (recordsState.table || 'tabla');
-        popup.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml(title) + '</title>');
-        popup.document.write('<style>body{font-family:Segoe UI,Tahoma,sans-serif;padding:24px;color:#1f2d3d}h1{font-size:18px;margin:0 0 12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8e0ea;padding:8px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f6fb}</style>');
-        popup.document.write('</head><body>');
-        popup.document.write('<h1>' + escapeHtml(title) + '</h1>');
-        popup.document.write(table.outerHTML);
-        popup.document.write('</body></html>');
-        popup.document.close();
-        popup.focus();
-        popup.print();
+        const lines = [];
+        lines.push(state.columns.map(quote).join(','));
+
+        state.rows.forEach(function (row) {
+            const line = state.columns.map(function (column) {
+                return quote(row[column]);
+            }).join(',');
+            lines.push(line);
+        });
+
+        return '\uFEFF' + lines.join('\n');
     }
 
-    async function loadRecords(table) {
-        if (!table) {
-            renderRecordsTable({ columns: [], rows: [] }, '');
+    function exportExplorerAsCsv() {
+        if (explorerState.columns.length === 0) {
             return;
         }
 
-        const result = await getJson('index.php?page=api_records&table=' + encodeURIComponent(table) + '&limit=500');
-        if (!result.ok) {
-            renderRecordsTable({ columns: [], rows: [] }, table);
-            renderAlert(result.message || 'No se pudieron cargar los registros', 'danger');
+        const csvContent = buildCsvFromState(explorerState);
+        downloadBlob(csvContent, 'text/csv;charset=utf-8;', (explorerState.table || 'tabla') + '_registros.csv');
+    }
+
+    function exportExplorerAsExcel() {
+        if (explorerState.columns.length === 0) {
             return;
         }
 
-        renderRecordsTable(result.data || { columns: [], rows: [] }, table);
+        const tableHtml = '<table><thead><tr>'
+            + explorerState.columns.map(function (column) {
+                return '<th>' + escapeHtml(column) + '</th>';
+            }).join('')
+            + '</tr></thead><tbody>'
+            + explorerState.rows.map(function (row) {
+                return '<tr>' + explorerState.columns.map(function (column) {
+                    const value = row[column];
+                    return '<td>' + escapeHtml(value === null ? '' : value) + '</td>';
+                }).join('') + '</tr>';
+            }).join('')
+            + '</tbody></table>';
+
+        const excelHtml = '<html><head><meta charset="utf-8"></head><body>' + tableHtml + '</body></html>';
+        downloadBlob(excelHtml, 'application/vnd.ms-excel;charset=utf-8;', (explorerState.table || 'tabla') + '_registros.xls');
     }
 
     async function loadTables() {
@@ -363,15 +292,16 @@
     async function loadColumns(table) {
         const fieldBox = document.getElementById('dynamicFields');
         const tableInput = document.getElementById('tableInput');
-        if (!fieldBox || !tableInput) {
+        const meta = document.getElementById('formSelectedMeta');
+        if (!fieldBox || !tableInput || !meta) {
             return;
         }
 
         fieldBox.innerHTML = '';
         tableInput.value = table;
+        meta.textContent = table ? 'Tabla actual: ' + table : '';
 
         if (!table) {
-            renderRecordsTable({ columns: [], rows: [] }, '');
             return;
         }
 
@@ -387,7 +317,7 @@
             }
 
             const col = document.createElement('div');
-            col.className = 'col-12 col-md-6';
+            col.className = 'col-12 col-md-6 col-xl-4';
 
             const label = document.createElement('label');
             label.className = 'form-label';
@@ -413,20 +343,15 @@
     async function bindDynamicForm() {
         const select = document.getElementById('tableSelect');
         const form = document.getElementById('dynamicForm');
-        const exportBtn = document.getElementById('exportRecordsBtn');
-        const printBtn = document.getElementById('printRecordsBtn');
-        if (!select || !form || !exportBtn || !printBtn) {
+        if (!select || !form) {
             return;
         }
 
         await loadTables();
 
-        exportBtn.addEventListener('click', exportRecordsAsCsv);
-        printBtn.addEventListener('click', printRecordsTable);
-
         select.addEventListener('change', function () {
+            document.getElementById('formAlert').innerHTML = '';
             loadColumns(this.value);
-            loadRecords(this.value);
         });
 
         form.addEventListener('submit', async function (event) {
@@ -447,13 +372,29 @@
             renderAlert(result.message, 'success');
             form.reset();
             document.getElementById('tableInput').value = select.value;
-            loadRecords(select.value);
+            loadColumns(select.value);
         });
 
         if (select.value) {
             loadColumns(select.value);
-            loadRecords(select.value);
         }
+    }
+
+        const popup = window.open('', '_blank', 'width=1100,height=700');
+        if (!popup) {
+            return;
+        }
+
+        const title = 'Registros - ' + (recordsState.table || 'tabla');
+        popup.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml(title) + '</title>');
+        popup.document.write('<style>body{font-family:Segoe UI,Tahoma,sans-serif;padding:24px;color:#1f2d3d}h1{font-size:18px;margin:0 0 12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8e0ea;padding:8px;font-size:12px;text-align:left;vertical-align:top}th{background:#f2f6fb}</style>');
+        popup.document.write('</head><body>');
+        popup.document.write('<h1>' + escapeHtml(title) + '</h1>');
+        popup.document.write(table.outerHTML);
+        popup.document.write('</body></html>');
+        popup.document.close();
+        popup.focus();
+        popup.print();
     }
 
     function renderExplorerTable(payload, table) {
@@ -462,13 +403,21 @@
         const head = document.getElementById('tablesExplorerHead');
         const body = document.getElementById('tablesExplorerBody');
         const meta = document.getElementById('tablesExplorerMeta');
+        const csvBtn = document.getElementById('tablesCsvBtn');
+        const excelBtn = document.getElementById('tablesExcelBtn');
 
-        if (!wrapper || !empty || !head || !body || !meta) {
+        if (!wrapper || !empty || !head || !body || !meta || !csvBtn || !excelBtn) {
             return;
         }
 
         const columns = Array.isArray(payload.columns) ? payload.columns : [];
         const rows = Array.isArray(payload.rows) ? payload.rows : [];
+        explorerState.table = table;
+        explorerState.columns = columns;
+        explorerState.rows = rows;
+
+        csvBtn.disabled = columns.length === 0;
+        excelBtn.disabled = columns.length === 0;
 
         if (!table || columns.length === 0) {
             wrapper.classList.add('d-none');
@@ -505,11 +454,16 @@
 
     async function bindTablesExplorer() {
         const select = document.getElementById('tablesExplorerSelect');
-        if (!select) {
+        const csvBtn = document.getElementById('tablesCsvBtn');
+        const excelBtn = document.getElementById('tablesExcelBtn');
+        if (!select || !csvBtn || !excelBtn) {
             return;
         }
 
         await loadTablesInto('tablesExplorerSelect', 'tablesExplorerAlert');
+
+        csvBtn.addEventListener('click', exportExplorerAsCsv);
+        excelBtn.addEventListener('click', exportExplorerAsExcel);
 
         select.addEventListener('change', async function () {
             const table = this.value;

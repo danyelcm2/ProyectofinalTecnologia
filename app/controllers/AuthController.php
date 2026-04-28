@@ -9,7 +9,7 @@ class AuthController
 {
     public function login(): void
     {
-        if (!empty($_SESSION['is_authenticated'])) {
+        if (!empty($_SESSION['is_authenticated']) && empty($_SESSION['pending_login_user'])) {
             header('Location: index.php?page=connections');
             exit;
         }
@@ -38,20 +38,24 @@ class AuthController
                         $userModel->storeTwoFactorSecret($user['id'], $secret);
                     }
 
-                    session_regenerate_id(true);
-                    $_SESSION['user'] = [
+                    $_SESSION['pending_login_user'] = [
                         'id' => $user['id'],
                         'name' => $user['name'],
                         'email' => $user['email'],
                     ];
-                    $_SESSION['is_authenticated'] = true;
                     $_SESSION['two_factor_secret'] = $secret;
                     $_SESSION['requires_2fa_setup'] = $requiresSetup;
-                    $_SESSION['db_2fa_verified'] = false;
+                    $_SESSION['pending_2fa_context'] = 'login';
 
-                    unset($_SESSION['pending_db_connection'], $_SESSION['db_connection']);
+                    unset(
+                        $_SESSION['pending_db_connection'],
+                        $_SESSION['db_connection'],
+                        $_SESSION['db_2fa_verified'],
+                        $_SESSION['is_authenticated'],
+                        $_SESSION['user']
+                    );
 
-                    header('Location: index.php?page=connections');
+                    header('Location: index.php?page=verify-2fa');
                     exit;
                 }
             }
@@ -68,18 +72,31 @@ class AuthController
 
     public function verifyTwoFactor(): void
     {
-        if (empty($_SESSION['is_authenticated'])) {
+        $context = (string) ($_SESSION['pending_2fa_context'] ?? '');
+        if ($context === '') {
             header('Location: index.php?page=login');
             exit;
         }
 
-        if (empty($_SESSION['pending_db_connection'])) {
+        if ($context === 'db' && empty($_SESSION['is_authenticated'])) {
+            header('Location: index.php?page=login');
+            exit;
+        }
+
+        if ($context === 'db' && empty($_SESSION['pending_db_connection'])) {
             header('Location: index.php?page=connections');
             exit;
         }
 
+        if ($context === 'login' && empty($_SESSION['pending_login_user'])) {
+            header('Location: index.php?page=login');
+            exit;
+        }
+
         $error = null;
-        $sessionUser = $_SESSION['user'] ?? [];
+        $sessionUser = $context === 'login'
+            ? ($_SESSION['pending_login_user'] ?? [])
+            : ($_SESSION['user'] ?? []);
         $secret = (string) ($_SESSION['two_factor_secret'] ?? '');
 
         if ($secret === '' && !empty($sessionUser['email'])) {
@@ -99,10 +116,23 @@ class AuthController
             } elseif (!Totp::verify($secret, $code)) {
                 $error = 'Codigo incorrecto.';
             } else {
+                if ($context === 'login') {
+                    session_regenerate_id(true);
+                    $_SESSION['user'] = $_SESSION['pending_login_user'];
+                    $_SESSION['is_authenticated'] = true;
+                    $_SESSION['db_2fa_verified'] = false;
+                    $_SESSION['requires_2fa_setup'] = false;
+
+                    unset($_SESSION['pending_login_user'], $_SESSION['pending_2fa_context']);
+
+                    header('Location: index.php?page=connections');
+                    exit;
+                }
+
                 $_SESSION['db_connection'] = (string) $_SESSION['pending_db_connection'];
                 $_SESSION['db_2fa_verified'] = true;
                 $_SESSION['requires_2fa_setup'] = false;
-                unset($_SESSION['pending_db_connection']);
+                unset($_SESSION['pending_db_connection'], $_SESSION['pending_2fa_context']);
 
                 header('Location: index.php?page=dashboard');
                 exit;
@@ -113,10 +143,12 @@ class AuthController
         $requiresSetup = !empty($_SESSION['requires_2fa_setup']);
         $otpauthUri = $requiresSetup && $secret !== '' ? Totp::provisioningUri($issuer, (string) ($sessionUser['email'] ?? ''), $secret) : '';
         $qrCodeUrl = $otpauthUri !== '' ? Totp::qrImageUrl($otpauthUri) : '';
-        $connection = db_connection_meta((string) $_SESSION['pending_db_connection']);
+        $connection = $context === 'db'
+            ? db_connection_meta((string) $_SESSION['pending_db_connection'])
+            : null;
 
         $viewData = [
-            'title' => 'Confirmar acceso a base de datos',
+            'title' => $context === 'login' ? 'Confirmar inicio de sesion' : 'Confirmar acceso a base de datos',
             'error' => $error,
             'manualKey' => $requiresSetup ? $secret : '',
             'otpauthUri' => $otpauthUri,
@@ -125,6 +157,7 @@ class AuthController
             'email' => (string) ($sessionUser['email'] ?? ''),
             'requiresSetup' => $requiresSetup,
             'connectionLabel' => (string) ($connection['label'] ?? ''),
+            'isLoginStep' => $context === 'login',
         ];
 
         require __DIR__ . '/../views/auth/twofa.php';

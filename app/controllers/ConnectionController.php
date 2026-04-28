@@ -51,6 +51,7 @@ class ConnectionController
 
             $_SESSION['pending_db_connection'] = $selected;
             $_SESSION['db_2fa_verified'] = false;
+            $_SESSION['pending_2fa_context'] = 'db';
 
             header('Location: index.php?page=verify-2fa');
             exit;

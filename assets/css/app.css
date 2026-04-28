@@ -168,6 +168,16 @@ body {
     border-left: 4px solid #d5e8f9;
 }
 
+.forms-toolbar-card {
+    border-left: 4px solid #b7d7f2;
+    background: linear-gradient(180deg, #ffffff 0%, #f3f9ff 100%);
+}
+
+.forms-generator-full {
+    min-height: calc(100vh - 250px);
+    border-left: 4px solid #b8efd6;
+}
+
 .forms-card--picker {
     background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
 }
@@ -189,6 +199,19 @@ body {
     background: #eaf1f9;
     border-color: #a9c0d9;
     color: #27445f;
+}
+
+.forms-card .form-select,
+.forms-card .form-control,
+.forms-toolbar-card .form-select,
+.forms-toolbar-card .form-control {
+    border-radius: 0.7rem;
+}
+
+.forms-card .form-label,
+.forms-toolbar-card .form-label {
+    font-weight: 600;
+    color: #36536d;
 }
 
 .records-table-wrapper {
