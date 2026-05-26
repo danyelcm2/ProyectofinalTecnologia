@@ -17,7 +17,7 @@ require __DIR__ . '/../layout/header.php';
 
 <div class="chart-card connection-picker-card">
     <form method="POST" action="index.php?page=select-connection" class="row g-3 align-items-end">
-        <div class="col-12 col-md-8 col-xl-6">
+        <div class="col-12 col-md-8 col-xl-5">
             <label for="connection" class="form-label">Base de datos disponible</label>
             <select class="form-select" id="connection" name="connection" required>
                 <option value="">Selecciona una opcion</option>
@@ -30,9 +30,28 @@ require __DIR__ . '/../layout/header.php';
             </select>
             <div class="form-text mt-2">Este cambio impacta dashboard y mantenimientos de clientes, productos, ventas y detalle de ventas.</div>
         </div>
+
+        <div class="col-12 col-md-8 col-xl-4" id="sqlitePathGroup" style="display: none;">
+            <label for="sqlite_path" class="form-label">Ruta archivo .db (SQLite)</label>
+            <input
+                type="text"
+                class="form-control"
+                id="sqlite_path"
+                name="sqlite_path"
+                placeholder="./database/postres.db"
+                value="<?= htmlspecialchars((string) ($viewData['sqlitePath'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+            >
+        </div>
+
         <div class="col-12 col-md-4 col-xl-3">
-            <button type="submit" class="btn btn-dessert w-100">Confirmar</button>
+            <button type="submit" class="btn btn-confirm-connection w-100">
+                <i class="fa-solid fa-circle-check me-2"></i>Confirmar conexion
+            </button>
         </div>
     </form>
 </div>
+
+<script>
+window.APP_PAGE = 'connections';
+</script>
 <?php require __DIR__ . '/../layout/footer.php'; ?>

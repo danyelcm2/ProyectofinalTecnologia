@@ -54,6 +54,14 @@ function app_config(): array
                 'charset' => 'UTF8',
                 'simulated' => false,
             ],
+
+            'sqlite' => [
+                'label' => 'SQLite',
+                'driver' => 'sqlite',
+                'database' => __DIR__ . '/../database/postres.db',
+                'charset' => 'utf8',
+                'simulated' => false,
+            ],
         ],
     ];
 }

@@ -17,6 +17,7 @@ class ConnectionController
             'user' => $_SESSION['user'] ?? ['name' => 'Usuario'],
             'connections' => $connections,
             'selected' => $selected,
+            'sqlitePath' => (string) (db_connection_credentials_view('sqlite')['database'] ?? ''),
             'flash' => $flash,
         ];
 
@@ -45,14 +46,27 @@ class ConnectionController
                 throw new InvalidArgumentException('Conexion invalida.');
             }
 
-            db_validate_runtime_driver($selected, $meta);
-            db_build_runtime_pdo($selected, $meta);
+            $runtimeMeta = $meta;
+            if (($meta['driver'] ?? '') === 'sqlite') {
+                $sqlitePath = trim((string) ($_POST['sqlite_path'] ?? ''));
+                if ($sqlitePath === '') {
+                    throw new InvalidArgumentException('Debes indicar la ruta del archivo SQLite (.db).');
+                }
+
+                $runtimeMeta['database'] = $sqlitePath;
+                db_store_connection_credentials($selected, ['database' => $sqlitePath]);
+            }
+
+            db_validate_runtime_driver($selected, $runtimeMeta);
+            db_build_runtime_pdo($selected, $runtimeMeta);
 
             $_SESSION['db_connection'] = $selected;
             $_SESSION['connection_flash'] = ['level' => 'success', 'message' => 'Conexión actualizada correctamente'];
 
             header('Location: index.php?page=dashboard');
             exit;
+        } catch (InvalidArgumentException $error) {
+            $_SESSION['connection_flash'] = ['level' => 'danger', 'message' => $error->getMessage()];
         } catch (RuntimeException $error) {
             $_SESSION['connection_flash'] = ['level' => 'danger', 'message' => 'Esta conexion requiere un driver PDO que no esta instalado en PHP.'];
         } catch (Throwable $error) {

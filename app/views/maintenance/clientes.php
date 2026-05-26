@@ -16,7 +16,7 @@ require __DIR__ . '/../layout/header.php';
             <span>Conexion activa: <?= htmlspecialchars((string) $viewData['connection']['label'], ENT_QUOTES, 'UTF-8'); ?></span>
         </div>
         <button class="btn btn-dessert" type="button" data-action="create-cliente">
-            <i class="fa-solid fa-plus"></i> Nuevo cliente
+            <i class="fa-solid fa-plus"></i> Nuevo
         </button>
     </div>
 </div>

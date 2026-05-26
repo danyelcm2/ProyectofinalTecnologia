@@ -48,6 +48,52 @@ body {
     box-shadow: var(--shadow);
 }
 
+.login-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+    color: #ffffff;
+}
+
+.login-brand-icon {
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 1.35rem;
+}
+
+.login-brand-name {
+    font-family: "Pacifico", cursive;
+    font-size: 1.8rem;
+    letter-spacing: 0.4px;
+}
+
+.login-art {
+    display: flex;
+    justify-content: center;
+    gap: 0.65rem;
+    margin: 0.4rem 0 1rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.1rem;
+}
+
+.login-art i {
+    animation: floatY 2.8s ease-in-out infinite;
+}
+
+.login-art i:nth-child(2) {
+    animation-delay: 0.25s;
+}
+
+.login-art i:nth-child(3) {
+    animation-delay: 0.5s;
+}
+
 .dashboard-shell {
     display: flex;
     min-height: 100vh;
@@ -183,6 +229,29 @@ body {
     box-shadow: 0 10px 18px rgba(157, 78, 221, 0.28);
 }
 
+.btn-confirm-connection {
+    border: none;
+    border-radius: 1rem;
+    padding: 0.8rem 1rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(95deg, #ff69b4 0%, #9d4edd 100%);
+    box-shadow: 0 10px 22px rgba(157, 78, 221, 0.32);
+    transition: transform 0.18s ease, box-shadow 0.22s ease, filter 0.2s ease;
+}
+
+.btn-confirm-connection:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(157, 78, 221, 0.38);
+    filter: saturate(1.08);
+}
+
+.btn-confirm-connection:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 18px rgba(157, 78, 221, 0.3);
+}
+
 .form-control,
 .form-select {
     border-radius: 0.8rem;
@@ -245,6 +314,15 @@ body {
     border-radius: 0.8rem;
 }
 
+.skeleton-line {
+    display: block;
+    height: 12px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f9d8ea 25%, #f4c8e2 37%, #f9d8ea 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+}
+
 .connection-picker-card {
     position: relative;
     overflow: hidden;
@@ -283,6 +361,25 @@ body {
     to {
         transform: translateY(0);
         opacity: 1;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 100% 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
+}
+
+@keyframes floatY {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
     }
 }
 

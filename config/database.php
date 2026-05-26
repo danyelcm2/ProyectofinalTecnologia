@@ -41,6 +41,10 @@ function db_connection_resolved_meta(string $key): ?array
         }
     }
 
+    if (($meta['driver'] ?? '') === 'sqlite') {
+        $meta['database'] = (string) ($overrides['database'] ?? $meta['database'] ?? '');
+    }
+
     return $meta;
 }
 
@@ -111,6 +115,19 @@ function db_build_pdo(array $meta): PDO
     $port = (int) ($meta['port'] ?? 3306);
     $database = (string) ($meta['database'] ?? '');
     $charset = (string) ($meta['charset'] ?? 'utf8mb4');
+
+    if ($driver === 'sqlite') {
+        $database = (string) ($meta['database'] ?? '');
+        if ($database === '') {
+            throw new InvalidArgumentException('Ruta de SQLite invalida.');
+        }
+
+        return new PDO('sqlite:' . $database, null, null, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_TIMEOUT => 5,
+        ]);
+    }
 
     if ($driver === 'pgsql') {
         $dsn = sprintf(

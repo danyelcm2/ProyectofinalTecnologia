@@ -23,11 +23,12 @@ class KpiModel
     {
         $pdo = db_connect();
         $this->assertRequiredSchema($pdo);
+           $dateExpr = $this->dateExpression($pdo, 'fecha');
 
-        $ventasPorDiaSql = 'SELECT CAST(fecha AS DATE) AS etiqueta, COALESCE(SUM(total), 0) AS valor
+           $ventasPorDiaSql = 'SELECT ' . $dateExpr . ' AS etiqueta, COALESCE(SUM(total), 0) AS valor
              FROM ventas
-             GROUP BY CAST(fecha AS DATE)
-             ORDER BY CAST(fecha AS DATE) DESC';
+               GROUP BY ' . $dateExpr . '
+               ORDER BY ' . $dateExpr . ' DESC';
         $topPostresSql = 'SELECT p.nombre AS etiqueta, COALESCE(SUM(d.cantidad), 0) AS valor
              FROM detalle_ventas d
              JOIN productos p ON p.id = d.producto_id
@@ -101,6 +102,8 @@ class KpiModel
 
         if ($driver === 'pgsql') {
             $rows = $pdo->query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'")->fetchAll(PDO::FETCH_NUM);
+        } elseif ($driver === 'sqlite') {
+            $rows = $pdo->query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_NUM);
         } elseif ($driver === 'sqlsrv') {
             $rows = $pdo->query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'dbo'")->fetchAll(PDO::FETCH_NUM);
         } else {
@@ -120,5 +123,16 @@ class KpiModel
         }
 
         return $sql . ' LIMIT ' . $safeLimit;
+    }
+
+    private function dateExpression(PDO $pdo, string $column): string
+    {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        if ($driver === 'sqlite') {
+            return 'date(' . $column . ')';
+        }
+
+        return 'CAST(' . $column . ' AS DATE)';
     }
 }

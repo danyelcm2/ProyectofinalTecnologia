@@ -36,6 +36,10 @@
     }
 
     function startLoader(message) {
+        if (!window.Swal) {
+            return;
+        }
+
         Swal.fire({
             title: message || 'Procesando...',
             allowOutsideClick: false,
@@ -48,6 +52,10 @@
     }
 
     function stopLoader() {
+        if (!window.Swal) {
+            return;
+        }
+
         Swal.close();
     }
 
@@ -141,9 +149,70 @@
     }
 
     function destroyDataTable(selector) {
+        if (!window.jQuery || !$.fn || !$.fn.DataTable) {
+            return;
+        }
+
         if ($.fn.DataTable.isDataTable(selector)) {
             $(selector).DataTable().destroy();
         }
+    }
+
+    function resolveModal(modalEl) {
+        if (!modalEl) {
+            return { show: function () {}, hide: function () {} };
+        }
+
+        if (window.bootstrap && bootstrap.Modal) {
+            return new bootstrap.Modal(modalEl);
+        }
+
+        return {
+            show: function () {
+                modalEl.style.display = 'block';
+                modalEl.classList.add('show');
+                modalEl.removeAttribute('aria-hidden');
+            },
+            hide: function () {
+                modalEl.style.display = 'none';
+                modalEl.classList.remove('show');
+                modalEl.setAttribute('aria-hidden', 'true');
+            }
+        };
+    }
+
+    function extractRows(result) {
+        if (!result || !result.ok) {
+            return [];
+        }
+
+        if (Array.isArray(result.rows)) {
+            return result.rows;
+        }
+
+        if (result.data && Array.isArray(result.data.rows)) {
+            return result.data.rows;
+        }
+
+        return [];
+    }
+
+    function renderSkeleton(table, columns) {
+        const tbody = table.querySelector('tbody');
+        if (!tbody) {
+            return;
+        }
+
+        const lines = [];
+        for (let i = 0; i < 6; i += 1) {
+            const cols = [];
+            for (let c = 0; c < columns; c += 1) {
+                cols.push('<td><span class="skeleton-line"></span></td>');
+            }
+            lines.push('<tr>' + cols.join('') + '</tr>');
+        }
+
+        tbody.innerHTML = lines.join('');
     }
 
     function buildActions(id, entity) {
@@ -170,19 +239,23 @@
             }
 
             const id = button.getAttribute('data-id');
-            const result = await Swal.fire({
-                title: 'Confirmar eliminacion',
-                text: 'Se eliminara este registro de ' + label + '.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Si, eliminar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#9D4EDD',
-                cancelButtonColor: '#6c757d',
-                background: '#fff5f8',
-            });
+            if (window.Swal) {
+                const result = await Swal.fire({
+                    title: 'Confirmar eliminacion',
+                    text: 'Se eliminara este registro de ' + label + '.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#9D4EDD',
+                    cancelButtonColor: '#6c757d',
+                    background: '#fff5f8',
+                });
 
-            if (!result.isConfirmed) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+            } else if (!window.confirm('Se eliminara este registro de ' + label + '.')) {
                 return;
             }
 
@@ -203,6 +276,10 @@
     }
 
     function buildDataTable(selector) {
+        if (!window.jQuery || !$.fn || !$.fn.DataTable) {
+            return;
+        }
+
         $(selector).DataTable({
             paging: true,
             searching: true,
@@ -240,10 +317,11 @@
 
         const modalEl = document.getElementById('clienteModal');
         const form = document.getElementById('clienteForm');
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = resolveModal(modalEl);
         const rowsById = new Map();
 
         async function reload() {
+            renderSkeleton(table, 5);
             startLoader('Cargando clientes...');
             const result = await getJson('index.php?page=api_clientes&perPage=500');
             stopLoader();
@@ -256,7 +334,7 @@
             const tbody = table.querySelector('tbody');
             tbody.innerHTML = '';
 
-            (result.rows || []).forEach(function (row) {
+            extractRows(result).forEach(function (row) {
                 rowsById.set(String(row.id), row);
                 tbody.insertAdjacentHTML('beforeend', ''
                     + '<tr>'
@@ -272,12 +350,15 @@
             buildDataTable('#clientesTable');
         }
 
-        document.querySelector('[data-action="create-cliente"]').addEventListener('click', function () {
-            form.reset();
-            document.getElementById('cliente_id').value = '';
-            setModalTitle('clienteModalTitle', 'Nuevo cliente');
-            modal.show();
-        });
+        const createBtn = document.querySelector('[data-action="create-cliente"]');
+        if (createBtn) {
+            createBtn.addEventListener('click', function () {
+                form.reset();
+                document.getElementById('cliente_id').value = '';
+                setModalTitle('clienteModalTitle', 'Nuevo cliente');
+                modal.show();
+            });
+        }
 
         document.addEventListener('click', function (event) {
             const edit = event.target.closest('[data-action="edit-cliente"]');
@@ -328,10 +409,11 @@
 
         const modalEl = document.getElementById('productoModal');
         const form = document.getElementById('productoForm');
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = resolveModal(modalEl);
         const rowsById = new Map();
 
         async function reload() {
+            renderSkeleton(table, 5);
             startLoader('Cargando productos...');
             const result = await getJson('index.php?page=api_productos&perPage=500');
             stopLoader();
@@ -344,7 +426,7 @@
             const tbody = table.querySelector('tbody');
             tbody.innerHTML = '';
 
-            (result.rows || []).forEach(function (row) {
+            extractRows(result).forEach(function (row) {
                 rowsById.set(String(row.id), row);
                 tbody.insertAdjacentHTML('beforeend', ''
                     + '<tr>'
@@ -360,12 +442,15 @@
             buildDataTable('#productosTable');
         }
 
-        document.querySelector('[data-action="create-producto"]').addEventListener('click', function () {
-            form.reset();
-            document.getElementById('producto_id').value = '';
-            setModalTitle('productoModalTitle', 'Nuevo producto');
-            modal.show();
-        });
+        const createBtn = document.querySelector('[data-action="create-producto"]');
+        if (createBtn) {
+            createBtn.addEventListener('click', function () {
+                form.reset();
+                document.getElementById('producto_id').value = '';
+                setModalTitle('productoModalTitle', 'Nuevo producto');
+                modal.show();
+            });
+        }
 
         document.addEventListener('click', function (event) {
             const edit = event.target.closest('[data-action="edit-producto"]');
@@ -422,7 +507,7 @@
 
         const modalEl = document.getElementById('ventaModal');
         const form = document.getElementById('ventaForm');
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = resolveModal(modalEl);
         const clienteSelect = document.getElementById('venta_cliente_id');
         const rowsById = new Map();
         let clientes = [];
@@ -444,6 +529,7 @@
         }
 
         async function reload() {
+            renderSkeleton(table, 5);
             startLoader('Cargando ventas...');
             const result = await getJson('index.php?page=api_ventas&perPage=500');
             stopLoader();
@@ -456,7 +542,7 @@
             const tbody = table.querySelector('tbody');
             tbody.innerHTML = '';
 
-            (result.rows || []).forEach(function (row) {
+            extractRows(result).forEach(function (row) {
                 rowsById.set(String(row.id), row);
                 tbody.insertAdjacentHTML('beforeend', ''
                     + '<tr>'
@@ -472,14 +558,17 @@
             buildDataTable('#ventasTable');
         }
 
-        document.querySelector('[data-action="create-venta"]').addEventListener('click', async function () {
-            form.reset();
-            document.getElementById('venta_id').value = '';
-            document.getElementById('venta_fecha').valueAsDate = new Date();
-            await loadClientesOptions('');
-            setModalTitle('ventaModalTitle', 'Nueva venta');
-            modal.show();
-        });
+        const createBtn = document.querySelector('[data-action="create-venta"]');
+        if (createBtn) {
+            createBtn.addEventListener('click', async function () {
+                form.reset();
+                document.getElementById('venta_id').value = '';
+                document.getElementById('venta_fecha').valueAsDate = new Date();
+                await loadClientesOptions('');
+                setModalTitle('ventaModalTitle', 'Nueva venta');
+                modal.show();
+            });
+        }
 
         document.addEventListener('click', async function (event) {
             const edit = event.target.closest('[data-action="edit-venta"]');
@@ -530,7 +619,7 @@
 
         const modalEl = document.getElementById('detalleVentaModal');
         const form = document.getElementById('detalleVentaForm');
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = resolveModal(modalEl);
         const ventaSelect = document.getElementById('detalle_venta_id_ref');
         const productoSelect = document.getElementById('detalle_producto_id');
         const cantidadInput = document.getElementById('detalle_cantidad');
@@ -582,6 +671,7 @@
         }
 
         async function reload() {
+            renderSkeleton(table, 6);
             startLoader('Cargando detalle de ventas...');
             const result = await getJson('index.php?page=api_detalle_ventas&perPage=500');
             stopLoader();
@@ -594,7 +684,7 @@
             const tbody = table.querySelector('tbody');
             tbody.innerHTML = '';
 
-            (result.rows || []).forEach(function (row) {
+            extractRows(result).forEach(function (row) {
                 rowsById.set(String(row.id), row);
                 tbody.insertAdjacentHTML('beforeend', ''
                     + '<tr>'
@@ -614,13 +704,16 @@
         productoSelect.addEventListener('change', updateSubtotal);
         cantidadInput.addEventListener('input', updateSubtotal);
 
-        document.querySelector('[data-action="create-detalle-venta"]').addEventListener('click', async function () {
-            form.reset();
-            document.getElementById('detalle_venta_id').value = '';
-            setModalTitle('detalleVentaModalTitle', 'Nuevo detalle');
-            await loadOptions('', '');
-            modal.show();
-        });
+        const createBtn = document.querySelector('[data-action="create-detalle-venta"]');
+        if (createBtn) {
+            createBtn.addEventListener('click', async function () {
+                form.reset();
+                document.getElementById('detalle_venta_id').value = '';
+                setModalTitle('detalleVentaModalTitle', 'Nuevo detalle');
+                await loadOptions('', '');
+                modal.show();
+            });
+        }
 
         document.addEventListener('click', async function (event) {
             const edit = event.target.closest('[data-action="edit-detalle-venta"]');
@@ -664,6 +757,24 @@
         reload();
     }
 
+    function bindConnections() {
+        const select = document.getElementById('connection');
+        const group = document.getElementById('sqlitePathGroup');
+        const input = document.getElementById('sqlite_path');
+        if (!select || !group || !input) {
+            return;
+        }
+
+        function syncVisibility() {
+            const isSqlite = select.value === 'sqlite';
+            group.style.display = isSqlite ? '' : 'none';
+            input.required = isSqlite;
+        }
+
+        select.addEventListener('change', syncVisibility);
+        syncVisibility();
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         if (window.APP_PAGE === 'dashboard') {
             loadDashboard();
@@ -674,5 +785,6 @@
         if (window.APP_PAGE === 'productos') bindProductos();
         if (window.APP_PAGE === 'ventas') bindVentas();
         if (window.APP_PAGE === 'detalle_ventas') bindDetalleVentas();
+        if (window.APP_PAGE === 'connections') bindConnections();
     });
 })();
