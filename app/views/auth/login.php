@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 $viewData = $viewData ?? [];
+$assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -13,7 +14,7 @@ $viewData = $viewData ?? [];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/app.css">
+    <link rel="stylesheet" href="../assets/css/app.css?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8'); ?>">
 </head>
 <body class="auth-body">
     <div class="auth-layout">
