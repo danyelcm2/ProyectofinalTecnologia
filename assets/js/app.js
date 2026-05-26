@@ -2,11 +2,54 @@
     'use strict';
 
     const charts = {};
-    const explorerState = {
-        table: '',
-        columns: [],
-        rows: []
-    };
+
+    function toast(message, level) {
+        const container = document.getElementById('appToastContainer');
+        if (!container) {
+            return;
+        }
+
+        const colorClass = {
+            success: 'text-bg-success',
+            danger: 'text-bg-danger',
+            warning: 'text-bg-warning',
+            info: 'text-bg-primary',
+        }[level || 'info'];
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'toast align-items-center border-0 ' + colorClass;
+        wrapper.role = 'alert';
+        wrapper.ariaLive = 'assertive';
+        wrapper.ariaAtomic = 'true';
+        wrapper.innerHTML = ''
+            + '<div class="d-flex">'
+            + '<div class="toast-body">' + message + '</div>'
+            + '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>'
+            + '</div>';
+
+        container.appendChild(wrapper);
+        const bsToast = new bootstrap.Toast(wrapper, { delay: 2600 });
+        bsToast.show();
+        wrapper.addEventListener('hidden.bs.toast', function () {
+            wrapper.remove();
+        });
+    }
+
+    function startLoader(message) {
+        Swal.fire({
+            title: message || 'Procesando...',
+            allowOutsideClick: false,
+            didOpen: function () {
+                Swal.showLoading();
+            },
+            background: '#fff5f8',
+            color: '#7e2a7a',
+        });
+    }
+
+    function stopLoader() {
+        Swal.close();
+    }
 
     function money(value) {
         return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(value);
@@ -41,15 +84,15 @@
                     borderWidth: 2,
                     borderRadius: 8,
                     backgroundColor: [
-                        'rgba(41, 128, 185, 0.45)',
-                        'rgba(39, 174, 96, 0.45)',
-                        'rgba(243, 156, 18, 0.45)',
-                        'rgba(192, 57, 43, 0.45)',
-                        'rgba(142, 68, 173, 0.45)',
-                        'rgba(44, 62, 80, 0.45)',
-                        'rgba(22, 160, 133, 0.45)',
+                        'rgba(255, 105, 180, 0.42)',
+                        'rgba(157, 78, 221, 0.42)',
+                        'rgba(200, 162, 200, 0.45)',
+                        'rgba(255, 182, 193, 0.55)',
+                        'rgba(214, 122, 198, 0.45)',
+                        'rgba(237, 162, 232, 0.4)',
+                        'rgba(255, 145, 187, 0.5)',
                     ],
-                    borderColor: 'rgba(44, 62, 80, 0.9)'
+                    borderColor: 'rgba(128, 45, 120, 0.95)'
                 }]
             },
             options: {
@@ -97,381 +140,528 @@
         }
     }
 
-    function inferInputType(columnType) {
-        const type = columnType.toLowerCase();
-        if (type.includes('int') || type.includes('decimal') || type.includes('float') || type.includes('double')) {
-            return 'number';
+    function destroyDataTable(selector) {
+        if ($.fn.DataTable.isDataTable(selector)) {
+            $(selector).DataTable().destroy();
         }
-        if (type.includes('timestamp') || type.includes('datetime')) {
-            return 'datetime-local';
-        }
-        if (type === 'date' || (type.includes('date') && !type.includes('time'))) {
-            return 'date';
-        }
-        if (type.includes('time')) {
-            return 'time';
-        }
-        return 'text';
     }
 
-    function shouldUseSelect(column) {
-        if (!column || !column.field) {
-            return false;
-        }
-
-        const hasOptions = Array.isArray(column.options) && column.options.length > 0;
-
-        return hasOptions;
+    function buildActions(id, entity) {
+        return ''
+            + '<div class="d-flex justify-content-end gap-2">'
+            + '<button type="button" class="btn btn-sm btn-outline-primary" data-action="edit-' + entity + '" data-id="' + id + '"><i class="fa-solid fa-pen"></i></button>'
+            + '<button type="button" class="btn btn-sm btn-outline-danger" data-action="delete-' + entity + '" data-id="' + id + '"><i class="fa-solid fa-trash"></i></button>'
+            + '</div>';
     }
 
-    function buildSelectInput(column) {
-        const select = document.createElement('select');
-        select.className = 'form-select';
-        select.name = column.field;
-        select.required = !column.nullable && column.default === null;
-
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Selecciona una opcion';
-        placeholder.selected = true;
-        placeholder.disabled = !!select.required;
-        select.appendChild(placeholder);
-
-        column.options.forEach(function (optionData) {
-            const option = document.createElement('option');
-            option.value = String(optionData.value || '');
-            option.textContent = String(optionData.label || optionData.value || '');
-            select.appendChild(option);
+    async function postForm(url, formData) {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
         });
-
-        return select;
+        return response.json();
     }
 
-    function renderAlert(message, level) {
-        const box = document.getElementById('formAlert');
-        if (!box) {
-            return;
-        }
-        box.innerHTML = '<div class="alert alert-' + level + ' py-2 mb-0">' + message + '</div>';
-    }
+    function wireDelete(buttonSelector, endpoint, refreshFn, label) {
+        document.addEventListener('click', async function (event) {
+            const button = event.target.closest(buttonSelector);
+            if (!button) {
+                return;
+            }
 
-    function renderCustomAlert(containerId, message, level) {
-        const box = document.getElementById(containerId);
-        if (!box) {
-            return;
-        }
-        box.innerHTML = '<div class="alert alert-' + level + ' py-2 mb-0">' + message + '</div>';
-    }
+            const id = button.getAttribute('data-id');
+            const result = await Swal.fire({
+                title: 'Confirmar eliminacion',
+                text: 'Se eliminara este registro de ' + label + '.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si, eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#9D4EDD',
+                cancelButtonColor: '#6c757d',
+                background: '#fff5f8',
+            });
 
-    function escapeHtml(value) {
-        return String(value)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
+            if (!result.isConfirmed) {
+                return;
+            }
 
-    function downloadBlob(content, mimeType, filename) {
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
+            const formData = new FormData();
+            formData.append('id', id);
+            startLoader('Eliminando...');
+            const payload = await postForm(endpoint, formData);
+            stopLoader();
 
-    function buildCsvFromState(state) {
-        if (state.columns.length === 0) {
-            return '';
-        }
+            if (!payload.ok) {
+                toast(payload.message || 'No se pudo eliminar.', 'danger');
+                return;
+            }
 
-        const quote = function (value) {
-            const plain = value === null || value === undefined ? '' : String(value);
-            return '"' + plain.replace(/"/g, '""') + '"';
-        };
-
-        const lines = [];
-        lines.push(state.columns.map(quote).join(','));
-
-        state.rows.forEach(function (row) {
-            const line = state.columns.map(function (column) {
-                return quote(row[column]);
-            }).join(',');
-            lines.push(line);
-        });
-
-        return '\uFEFF' + lines.join('\n');
-    }
-
-    function exportExplorerAsCsv() {
-        if (explorerState.columns.length === 0) {
-            return;
-        }
-
-        const csvContent = buildCsvFromState(explorerState);
-        downloadBlob(csvContent, 'text/csv;charset=utf-8;', (explorerState.table || 'tabla') + '_registros.csv');
-    }
-
-    function exportExplorerAsExcel() {
-        if (explorerState.columns.length === 0) {
-            return;
-        }
-
-        const tableHtml = '<table><thead><tr>'
-            + explorerState.columns.map(function (column) {
-                return '<th>' + escapeHtml(column) + '</th>';
-            }).join('')
-            + '</tr></thead><tbody>'
-            + explorerState.rows.map(function (row) {
-                return '<tr>' + explorerState.columns.map(function (column) {
-                    const value = row[column];
-                    return '<td>' + escapeHtml(value === null ? '' : value) + '</td>';
-                }).join('') + '</tr>';
-            }).join('')
-            + '</tbody></table>';
-
-        const excelHtml = '<html><head><meta charset="utf-8"></head><body>' + tableHtml + '</body></html>';
-        downloadBlob(excelHtml, 'application/vnd.ms-excel;charset=utf-8;', (explorerState.table || 'tabla') + '_registros.xls');
-    }
-
-    async function loadTables() {
-        const select = document.getElementById('tableSelect');
-        if (!select) {
-            return;
-        }
-
-        const result = await getJson('index.php?page=api_tables');
-        if (!result.ok) {
-            renderAlert('No se pudieron cargar tablas', 'danger');
-            return;
-        }
-
-        if (!Array.isArray(result.tables) || result.tables.length === 0) {
-            renderAlert('La base seleccionada no tiene tablas disponibles para generar formularios.', 'warning');
-            return;
-        }
-
-        result.tables.forEach(function (table) {
-            const option = document.createElement('option');
-            option.value = table;
-            option.textContent = table;
-            select.appendChild(option);
+            toast(payload.message || 'Registro eliminado.', 'success');
+            refreshFn();
         });
     }
 
-    async function loadTablesInto(selectId, alertId) {
-        const select = document.getElementById(selectId);
-        if (!select) {
-            return;
-        }
-
-        const result = await getJson('index.php?page=api_tables');
-        if (!result.ok) {
-            renderCustomAlert(alertId, 'No se pudieron cargar tablas', 'danger');
-            return;
-        }
-
-        if (!Array.isArray(result.tables) || result.tables.length === 0) {
-            renderCustomAlert(alertId, 'La base seleccionada no tiene tablas disponibles.', 'warning');
-            return;
-        }
-
-        result.tables.forEach(function (table) {
-            const option = document.createElement('option');
-            option.value = table;
-            option.textContent = table;
-            select.appendChild(option);
+    function buildDataTable(selector) {
+        $(selector).DataTable({
+            paging: true,
+            searching: true,
+            info: true,
+            lengthMenu: [5, 10, 20, 50],
+            order: [[0, 'desc']],
+            language: {
+                search: 'Buscar:',
+                lengthMenu: 'Mostrar _MENU_ registros',
+                info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+                infoEmpty: 'Sin registros disponibles',
+                emptyTable: 'No hay datos para mostrar',
+                paginate: {
+                    first: 'Primera',
+                    last: 'Ultima',
+                    next: 'Siguiente',
+                    previous: 'Anterior',
+                },
+            },
         });
     }
 
-    async function loadColumns(table) {
-        const fieldBox = document.getElementById('dynamicFields');
-        const tableInput = document.getElementById('tableInput');
-        const meta = document.getElementById('formSelectedMeta');
-        if (!fieldBox || !tableInput || !meta) {
-            return;
+    function setModalTitle(id, text) {
+        const title = document.getElementById(id);
+        if (title) {
+            title.textContent = text;
         }
+    }
 
-        fieldBox.innerHTML = '';
-        tableInput.value = table;
-        meta.textContent = table ? 'Tabla actual: ' + table : '';
-
+    function bindClientes() {
+        const table = document.getElementById('clientesTable');
         if (!table) {
             return;
         }
 
-        const result = await getJson('index.php?page=api_columns&table=' + encodeURIComponent(table));
-        if (!result.ok) {
-            renderAlert('No se pudieron cargar columnas', 'danger');
-            return;
-        }
+        const modalEl = document.getElementById('clienteModal');
+        const form = document.getElementById('clienteForm');
+        const modal = new bootstrap.Modal(modalEl);
+        const rowsById = new Map();
 
-        result.columns.forEach(function (column) {
-            if (String(column.extra).toLowerCase().includes('auto_increment')) {
+        async function reload() {
+            startLoader('Cargando clientes...');
+            const result = await getJson('index.php?page=api_clientes&perPage=500');
+            stopLoader();
+            if (!result.ok) {
+                toast(result.message || 'Error cargando clientes.', 'danger');
                 return;
             }
 
-            const col = document.createElement('div');
-            col.className = 'col-12 col-md-6 col-xl-4';
+            rowsById.clear();
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
 
-            const label = document.createElement('label');
-            label.className = 'form-label';
-            label.textContent = column.field;
+            (result.rows || []).forEach(function (row) {
+                rowsById.set(String(row.id), row);
+                tbody.insertAdjacentHTML('beforeend', ''
+                    + '<tr>'
+                    + '<td>' + row.id + '</td>'
+                    + '<td>' + (row.nombre || '') + '</td>'
+                    + '<td>' + (row.email || '') + '</td>'
+                    + '<td>' + (row.created_at || '') + '</td>'
+                    + '<td>' + buildActions(row.id, 'cliente') + '</td>'
+                    + '</tr>');
+            });
 
-            let input;
-            if (shouldUseSelect(column)) {
-                input = buildSelectInput(column);
-            } else {
-                input = document.createElement('input');
-                input.className = 'form-control';
-                input.name = column.field;
-                input.type = inferInputType(column.type);
-                input.required = !column.nullable && column.default === null;
-            }
-
-            col.appendChild(label);
-            col.appendChild(input);
-            fieldBox.appendChild(col);
-        });
-    }
-
-    async function bindDynamicForm() {
-        const select = document.getElementById('tableSelect');
-        const form = document.getElementById('dynamicForm');
-        if (!select || !form) {
-            return;
+            destroyDataTable('#clientesTable');
+            buildDataTable('#clientesTable');
         }
 
-        await loadTables();
+        document.querySelector('[data-action="create-cliente"]').addEventListener('click', function () {
+            form.reset();
+            document.getElementById('cliente_id').value = '';
+            setModalTitle('clienteModalTitle', 'Nuevo cliente');
+            modal.show();
+        });
 
-        select.addEventListener('change', function () {
-            document.getElementById('formAlert').innerHTML = '';
-            loadColumns(this.value);
+        document.addEventListener('click', function (event) {
+            const edit = event.target.closest('[data-action="edit-cliente"]');
+            if (!edit) {
+                return;
+            }
+
+            const row = rowsById.get(edit.getAttribute('data-id'));
+            if (!row) {
+                return;
+            }
+
+            setModalTitle('clienteModalTitle', 'Editar cliente #' + row.id);
+            document.getElementById('cliente_id').value = row.id;
+            document.getElementById('cliente_nombre').value = row.nombre || '';
+            document.getElementById('cliente_email').value = row.email || '';
+            modal.show();
         });
 
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
 
+            const id = document.getElementById('cliente_id').value;
             const formData = new FormData(form);
-            const response = await fetch('index.php?page=api_insert', {
-                method: 'POST',
-                body: formData
+            startLoader('Guardando cliente...');
+            const result = await postForm('index.php?page=' + (id ? 'api_clientes_update' : 'api_clientes_create'), formData);
+            stopLoader();
+
+            if (!result.ok) {
+                toast(result.message || 'No se pudo guardar.', 'danger');
+                return;
+            }
+
+            modal.hide();
+            toast(result.message || 'Cliente guardado.', 'success');
+            reload();
+        });
+
+        wireDelete('[data-action="delete-cliente"]', 'index.php?page=api_clientes_delete', reload, 'clientes');
+        reload();
+    }
+
+    function bindProductos() {
+        const table = document.getElementById('productosTable');
+        if (!table) {
+            return;
+        }
+
+        const modalEl = document.getElementById('productoModal');
+        const form = document.getElementById('productoForm');
+        const modal = new bootstrap.Modal(modalEl);
+        const rowsById = new Map();
+
+        async function reload() {
+            startLoader('Cargando productos...');
+            const result = await getJson('index.php?page=api_productos&perPage=500');
+            stopLoader();
+            if (!result.ok) {
+                toast(result.message || 'Error cargando productos.', 'danger');
+                return;
+            }
+
+            rowsById.clear();
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            (result.rows || []).forEach(function (row) {
+                rowsById.set(String(row.id), row);
+                tbody.insertAdjacentHTML('beforeend', ''
+                    + '<tr>'
+                    + '<td>' + row.id + '</td>'
+                    + '<td>' + (row.nombre || '') + '</td>'
+                    + '<td>' + money(Number(row.precio || 0)) + '</td>'
+                    + '<td>' + (row.created_at || '') + '</td>'
+                    + '<td>' + buildActions(row.id, 'producto') + '</td>'
+                    + '</tr>');
             });
 
-            const result = await response.json();
-            if (!result.ok) {
-                renderAlert(result.message || 'Error al insertar', 'danger');
-                return;
-            }
+            destroyDataTable('#productosTable');
+            buildDataTable('#productosTable');
+        }
 
-            renderAlert(result.message, 'success');
+        document.querySelector('[data-action="create-producto"]').addEventListener('click', function () {
             form.reset();
-            document.getElementById('tableInput').value = select.value;
-            loadColumns(select.value);
+            document.getElementById('producto_id').value = '';
+            setModalTitle('productoModalTitle', 'Nuevo producto');
+            modal.show();
         });
 
-        if (select.value) {
-            loadColumns(select.value);
-        }
-    }
-
-    function renderExplorerTable(payload, table) {
-        const wrapper = document.getElementById('tablesExplorerWrapper');
-        const empty = document.getElementById('tablesExplorerEmpty');
-        const head = document.getElementById('tablesExplorerHead');
-        const body = document.getElementById('tablesExplorerBody');
-        const meta = document.getElementById('tablesExplorerMeta');
-        const csvBtn = document.getElementById('tablesCsvBtn');
-        const excelBtn = document.getElementById('tablesExcelBtn');
-
-        if (!wrapper || !empty || !head || !body || !meta) {
-            return;
-        }
-
-        const columns = Array.isArray(payload.columns) ? payload.columns : [];
-        const rows = Array.isArray(payload.rows) ? payload.rows : [];
-        explorerState.table = table;
-        explorerState.columns = columns;
-        explorerState.rows = rows;
-
-        if (csvBtn) {
-            csvBtn.disabled = columns.length === 0;
-        }
-        if (excelBtn) {
-            excelBtn.disabled = columns.length === 0;
-        }
-
-        if (!table || columns.length === 0) {
-            wrapper.classList.add('d-none');
-            head.innerHTML = '';
-            body.innerHTML = '';
-            meta.textContent = '';
-            empty.textContent = table ? 'La tabla seleccionada no tiene columnas disponibles.' : 'Selecciona una tabla para visualizar sus datos.';
-            return;
-        }
-
-        head.innerHTML = '<tr>' + columns.map(function (column) {
-            return '<th scope="col">' + escapeHtml(column) + '</th>';
-        }).join('') + '</tr>';
-
-        if (rows.length === 0) {
-            body.innerHTML = '<tr><td colspan="' + columns.length + '" class="text-center text-secondary py-3">No hay registros en esta tabla.</td></tr>';
-            meta.textContent = 'Tabla: ' + table;
-            wrapper.classList.remove('d-none');
-            empty.textContent = '';
-            return;
-        }
-
-        body.innerHTML = rows.map(function (row) {
-            return '<tr>' + columns.map(function (column) {
-                const value = row[column];
-                return '<td>' + escapeHtml(value === null ? '' : value) + '</td>';
-            }).join('') + '</tr>';
-        }).join('');
-
-        meta.textContent = 'Tabla: ' + table + ' | Registros: ' + rows.length;
-        wrapper.classList.remove('d-none');
-        empty.textContent = '';
-    }
-
-    async function bindTablesExplorer() {
-        const select = document.getElementById('tablesExplorerSelect');
-        const csvBtn = document.getElementById('tablesCsvBtn');
-        const excelBtn = document.getElementById('tablesExcelBtn');
-        if (!select) {
-            return;
-        }
-
-        await loadTablesInto('tablesExplorerSelect', 'tablesExplorerAlert');
-
-        if (csvBtn) {
-            csvBtn.addEventListener('click', exportExplorerAsCsv);
-        }
-        if (excelBtn) {
-            excelBtn.addEventListener('click', exportExplorerAsExcel);
-        }
-
-        select.addEventListener('change', async function () {
-            const table = this.value;
-            if (!table) {
-                renderExplorerTable({ columns: [], rows: [] }, '');
+        document.addEventListener('click', function (event) {
+            const edit = event.target.closest('[data-action="edit-producto"]');
+            if (!edit) {
                 return;
             }
 
-            const result = await getJson('index.php?page=api_records&table=' + encodeURIComponent(table) + '&limit=500');
+            const row = rowsById.get(edit.getAttribute('data-id'));
+            if (!row) {
+                return;
+            }
+
+            setModalTitle('productoModalTitle', 'Editar producto #' + row.id);
+            document.getElementById('producto_id').value = row.id;
+            document.getElementById('producto_nombre').value = row.nombre || '';
+            document.getElementById('producto_precio').value = row.precio || '';
+            modal.show();
+        });
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const id = document.getElementById('producto_id').value;
+            const precio = Number(document.getElementById('producto_precio').value || 0);
+
+            if (precio <= 0) {
+                toast('El precio debe ser numerico y mayor a 0.', 'warning');
+                return;
+            }
+
+            const formData = new FormData(form);
+            startLoader('Guardando producto...');
+            const result = await postForm('index.php?page=' + (id ? 'api_productos_update' : 'api_productos_create'), formData);
+            stopLoader();
+
             if (!result.ok) {
-                renderCustomAlert('tablesExplorerAlert', result.message || 'No se pudieron cargar los registros', 'danger');
-                renderExplorerTable({ columns: [], rows: [] }, table);
+                toast(result.message || 'No se pudo guardar.', 'danger');
                 return;
             }
 
-            document.getElementById('tablesExplorerAlert').innerHTML = '';
-            renderExplorerTable(result.data || { columns: [], rows: [] }, table);
+            modal.hide();
+            toast(result.message || 'Producto guardado.', 'success');
+            reload();
         });
+
+        wireDelete('[data-action="delete-producto"]', 'index.php?page=api_productos_delete', reload, 'productos');
+        reload();
+    }
+
+    function bindVentas() {
+        const table = document.getElementById('ventasTable');
+        if (!table) {
+            return;
+        }
+
+        const modalEl = document.getElementById('ventaModal');
+        const form = document.getElementById('ventaForm');
+        const modal = new bootstrap.Modal(modalEl);
+        const clienteSelect = document.getElementById('venta_cliente_id');
+        const rowsById = new Map();
+        let clientes = [];
+
+        function fillClientes(selectedId) {
+            clienteSelect.innerHTML = '<option value="">Selecciona un cliente</option>';
+            clientes.forEach(function (item) {
+                const selected = String(item.id) === String(selectedId) ? ' selected' : '';
+                clienteSelect.insertAdjacentHTML('beforeend', '<option value="' + item.id + '"' + selected + '>' + item.nombre + '</option>');
+            });
+        }
+
+        async function loadClientesOptions(selectedId) {
+            const result = await getJson('index.php?page=api_options_clientes');
+            if (result.ok) {
+                clientes = result.rows || [];
+            }
+            fillClientes(selectedId || '');
+        }
+
+        async function reload() {
+            startLoader('Cargando ventas...');
+            const result = await getJson('index.php?page=api_ventas&perPage=500');
+            stopLoader();
+            if (!result.ok) {
+                toast(result.message || 'Error cargando ventas.', 'danger');
+                return;
+            }
+
+            rowsById.clear();
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            (result.rows || []).forEach(function (row) {
+                rowsById.set(String(row.id), row);
+                tbody.insertAdjacentHTML('beforeend', ''
+                    + '<tr>'
+                    + '<td>' + row.id + '</td>'
+                    + '<td>' + (row.cliente_nombre || '') + '</td>'
+                    + '<td>' + (row.fecha || '') + '</td>'
+                    + '<td>' + money(Number(row.total || 0)) + '</td>'
+                    + '<td>' + buildActions(row.id, 'venta') + '</td>'
+                    + '</tr>');
+            });
+
+            destroyDataTable('#ventasTable');
+            buildDataTable('#ventasTable');
+        }
+
+        document.querySelector('[data-action="create-venta"]').addEventListener('click', async function () {
+            form.reset();
+            document.getElementById('venta_id').value = '';
+            document.getElementById('venta_fecha').valueAsDate = new Date();
+            await loadClientesOptions('');
+            setModalTitle('ventaModalTitle', 'Nueva venta');
+            modal.show();
+        });
+
+        document.addEventListener('click', async function (event) {
+            const edit = event.target.closest('[data-action="edit-venta"]');
+            if (!edit) {
+                return;
+            }
+
+            const row = rowsById.get(edit.getAttribute('data-id'));
+            if (!row) {
+                return;
+            }
+
+            setModalTitle('ventaModalTitle', 'Editar venta #' + row.id);
+            document.getElementById('venta_id').value = row.id;
+            await loadClientesOptions(row.cliente_id);
+            document.getElementById('venta_fecha').value = String(row.fecha || '').slice(0, 10);
+            document.getElementById('venta_total').value = row.total || 0;
+            modal.show();
+        });
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const id = document.getElementById('venta_id').value;
+            const formData = new FormData(form);
+            startLoader('Guardando venta...');
+            const result = await postForm('index.php?page=' + (id ? 'api_ventas_update' : 'api_ventas_create'), formData);
+            stopLoader();
+
+            if (!result.ok) {
+                toast(result.message || 'No se pudo guardar.', 'danger');
+                return;
+            }
+
+            modal.hide();
+            toast(result.message || 'Venta guardada.', 'success');
+            reload();
+        });
+
+        wireDelete('[data-action="delete-venta"]', 'index.php?page=api_ventas_delete', reload, 'ventas');
+        reload();
+    }
+
+    function bindDetalleVentas() {
+        const table = document.getElementById('detalleVentasTable');
+        if (!table) {
+            return;
+        }
+
+        const modalEl = document.getElementById('detalleVentaModal');
+        const form = document.getElementById('detalleVentaForm');
+        const modal = new bootstrap.Modal(modalEl);
+        const ventaSelect = document.getElementById('detalle_venta_id_ref');
+        const productoSelect = document.getElementById('detalle_producto_id');
+        const cantidadInput = document.getElementById('detalle_cantidad');
+        const subtotalInput = document.getElementById('detalle_subtotal');
+        const rowsById = new Map();
+        let ventas = [];
+        let productos = [];
+
+        function fillVentas(selectedId) {
+            ventaSelect.innerHTML = '<option value="">Selecciona una venta</option>';
+            ventas.forEach(function (item) {
+                const selected = String(item.id) === String(selectedId) ? ' selected' : '';
+                const label = '#' + item.id + ' - ' + (item.cliente_nombre || '') + ' (' + String(item.fecha || '').slice(0, 10) + ')';
+                ventaSelect.insertAdjacentHTML('beforeend', '<option value="' + item.id + '"' + selected + '>' + label + '</option>');
+            });
+        }
+
+        function fillProductos(selectedId) {
+            productoSelect.innerHTML = '<option value="">Selecciona un producto</option>';
+            productos.forEach(function (item) {
+                const selected = String(item.id) === String(selectedId) ? ' selected' : '';
+                productoSelect.insertAdjacentHTML('beforeend', '<option value="' + item.id + '" data-precio="' + (item.precio || 0) + '"' + selected + '>' + item.nombre + '</option>');
+            });
+        }
+
+        function updateSubtotal() {
+            const selectedOption = productoSelect.options[productoSelect.selectedIndex];
+            const precio = selectedOption ? Number(selectedOption.getAttribute('data-precio') || 0) : 0;
+            const cantidad = Number(cantidadInput.value || 0);
+            subtotalInput.value = (precio * cantidad).toFixed(2);
+        }
+
+        async function loadOptions(selectedVenta, selectedProducto) {
+            const [ventasResult, productosResult] = await Promise.all([
+                getJson('index.php?page=api_options_ventas'),
+                getJson('index.php?page=api_options_productos'),
+            ]);
+
+            if (ventasResult.ok) {
+                ventas = ventasResult.rows || [];
+            }
+            if (productosResult.ok) {
+                productos = productosResult.rows || [];
+            }
+
+            fillVentas(selectedVenta || '');
+            fillProductos(selectedProducto || '');
+            updateSubtotal();
+        }
+
+        async function reload() {
+            startLoader('Cargando detalle de ventas...');
+            const result = await getJson('index.php?page=api_detalle_ventas&perPage=500');
+            stopLoader();
+            if (!result.ok) {
+                toast(result.message || 'Error cargando detalle de ventas.', 'danger');
+                return;
+            }
+
+            rowsById.clear();
+            const tbody = table.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            (result.rows || []).forEach(function (row) {
+                rowsById.set(String(row.id), row);
+                tbody.insertAdjacentHTML('beforeend', ''
+                    + '<tr>'
+                    + '<td>' + row.id + '</td>'
+                    + '<td>#' + row.venta_id + '</td>'
+                    + '<td>' + (row.producto_nombre || '') + '</td>'
+                    + '<td>' + row.cantidad + '</td>'
+                    + '<td>' + money(Number(row.subtotal || 0)) + '</td>'
+                    + '<td>' + buildActions(row.id, 'detalle-venta') + '</td>'
+                    + '</tr>');
+            });
+
+            destroyDataTable('#detalleVentasTable');
+            buildDataTable('#detalleVentasTable');
+        }
+
+        productoSelect.addEventListener('change', updateSubtotal);
+        cantidadInput.addEventListener('input', updateSubtotal);
+
+        document.querySelector('[data-action="create-detalle-venta"]').addEventListener('click', async function () {
+            form.reset();
+            document.getElementById('detalle_venta_id').value = '';
+            setModalTitle('detalleVentaModalTitle', 'Nuevo detalle');
+            await loadOptions('', '');
+            modal.show();
+        });
+
+        document.addEventListener('click', async function (event) {
+            const edit = event.target.closest('[data-action="edit-detalle-venta"]');
+            if (!edit) {
+                return;
+            }
+
+            const row = rowsById.get(edit.getAttribute('data-id'));
+            if (!row) {
+                return;
+            }
+
+            setModalTitle('detalleVentaModalTitle', 'Editar detalle #' + row.id);
+            document.getElementById('detalle_venta_id').value = row.id;
+            document.getElementById('detalle_cantidad').value = row.cantidad || 1;
+            document.getElementById('detalle_subtotal').value = Number(row.subtotal || 0).toFixed(2);
+            await loadOptions(row.venta_id, row.producto_id);
+            updateSubtotal();
+            modal.show();
+        });
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const id = document.getElementById('detalle_venta_id').value;
+            const formData = new FormData(form);
+            startLoader('Guardando detalle...');
+            const result = await postForm('index.php?page=' + (id ? 'api_detalle_ventas_update' : 'api_detalle_ventas_create'), formData);
+            stopLoader();
+
+            if (!result.ok) {
+                toast(result.message || 'No se pudo guardar.', 'danger');
+                return;
+            }
+
+            modal.hide();
+            toast(result.message || 'Detalle guardado.', 'success');
+            reload();
+        });
+
+        wireDelete('[data-action="delete-detalle-venta"]', 'index.php?page=api_detalle_ventas_delete', reload, 'detalle de ventas');
+        reload();
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -480,12 +670,9 @@
             setInterval(loadDashboard, 15000);
         }
 
-        if (window.APP_PAGE === 'forms') {
-            bindDynamicForm();
-        }
-
-        if (window.APP_PAGE === 'tables') {
-            bindTablesExplorer();
-        }
+        if (window.APP_PAGE === 'clientes') bindClientes();
+        if (window.APP_PAGE === 'productos') bindProductos();
+        if (window.APP_PAGE === 'ventas') bindVentas();
+        if (window.APP_PAGE === 'detalle_ventas') bindDetalleVentas();
     });
 })();

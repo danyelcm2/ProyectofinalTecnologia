@@ -6,7 +6,7 @@ require __DIR__ . '/../layout/header.php';
 ?>
 <section class="page-intro mb-4">
     <h2 class="mb-2">Seleccionar base de datos</h2>
-    <p class="text-secondary mb-0">Elige la base que deseas consultar. El sistema usara las credenciales internas ya configuradas y luego pedira tu codigo 2FA para autorizar el acceso.</p>
+    <p class="text-secondary mb-0">Elige la base de datos activa del sistema. El cambio se aplica de inmediato al confirmar.</p>
 </section>
 
 <?php if (!empty($viewData['flash'])): ?>
@@ -22,16 +22,16 @@ require __DIR__ . '/../layout/header.php';
             <select class="form-select" id="connection" name="connection" required>
                 <option value="">Selecciona una opcion</option>
                 <?php foreach ($viewData['connections'] as $key => $connection): ?>
-                    <?php $isSelected = ($viewData['pendingSelection'] ?: $viewData['selected']) === $key; ?>
+                    <?php $isSelected = $viewData['selected'] === $key; ?>
                     <option value="<?= htmlspecialchars((string) $key, ENT_QUOTES, 'UTF-8'); ?>" <?= $isSelected ? 'selected' : ''; ?>>
                         <?= htmlspecialchars((string) $connection['label'], ENT_QUOTES, 'UTF-8'); ?>
                     </option>
                 <?php endforeach; ?>
             </select>
-            <div class="form-text mt-2">Despues de seleccionar la base se solicitara tu codigo 2FA para ingresar al menu principal.</div>
+            <div class="form-text mt-2">Este cambio impacta dashboard y mantenimientos de clientes, productos, ventas y detalle de ventas.</div>
         </div>
         <div class="col-12 col-md-4 col-xl-3">
-            <button type="submit" class="btn btn-primary w-100">Continuar con 2FA</button>
+            <button type="submit" class="btn btn-dessert w-100">Confirmar</button>
         </div>
     </form>
 </div>

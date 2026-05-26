@@ -1,11 +1,14 @@
 :root {
-    --bg: #f6f8fb;
+    --rose-soft: #FFB6C1;
+    --rose-strong: #FF69B4;
+    --violet-soft: #C8A2C8;
+    --violet-main: #9D4EDD;
+    --bg-soft: #FFF5F8;
     --surface: #ffffff;
-    --ink: #1f2d3d;
-    --brand: #1f6aa5;
-    --brand-2: #158f77;
-    --muted: #6c7a89;
-    --accent: #f2994a;
+    --ink: #472347;
+    --muted: #7f5d83;
+    --line: #f2d9ec;
+    --shadow: 0 14px 32px rgba(157, 78, 221, 0.12);
 }
 
 * {
@@ -14,9 +17,12 @@
 
 body {
     margin: 0;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Quicksand", sans-serif;
     color: var(--ink);
-    background: radial-gradient(circle at top right, #dbefff 0%, var(--bg) 35%, #eef2f7 100%);
+    background:
+        radial-gradient(circle at 92% 6%, rgba(255, 105, 180, 0.24), transparent 34%),
+        radial-gradient(circle at 8% 14%, rgba(200, 162, 200, 0.26), transparent 30%),
+        linear-gradient(180deg, #fff9fc 0%, var(--bg-soft) 55%, #fef2f9 100%);
 }
 
 .auth-body {
@@ -24,17 +30,22 @@ body {
     display: grid;
     place-items: center;
     padding: 1rem;
-    background: linear-gradient(130deg, #0f2a43 0%, #1f6aa5 45%, #2c8d7f 100%);
+    background:
+        radial-gradient(circle at 5% 10%, rgba(255, 182, 193, 0.32), transparent 32%),
+        radial-gradient(circle at 95% 20%, rgba(157, 78, 221, 0.28), transparent 30%),
+        linear-gradient(135deg, #fff0f6 0%, #f7e7ff 45%, #ffeaf4 100%);
 }
 
 .auth-wrapper {
     width: min(520px, 100%);
+    animation: rise 0.45s ease;
 }
 
 .auth-card {
-    background: rgba(9, 32, 52, 0.76);
+    background: rgba(157, 78, 221, 0.78);
     backdrop-filter: blur(12px);
-    border-radius: 1rem;
+    border-radius: 1.2rem;
+    box-shadow: var(--shadow);
 }
 
 .dashboard-shell {
@@ -44,20 +55,23 @@ body {
 
 .app-sidebar {
     width: 280px;
-    background: linear-gradient(180deg, #12273a 0%, #1f2d3d 100%);
+    background:
+        linear-gradient(180deg, #ffdeec 0%, #f3d9ff 50%, #ebd8ff 100%);
     color: #ffffff;
     padding: 2rem 1.25rem;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(157, 78, 221, 0.2);
 }
 
 .brand-title {
-    font-size: 1.4rem;
+    font-size: 1.7rem;
+    font-family: "Pacifico", cursive;
     margin: 0;
+    color: #7b287d;
 }
 
 .brand-subtitle {
     margin: 0.2rem 0 0;
-    color: rgba(255, 255, 255, 0.62);
+    color: #8a5f93;
     font-size: 0.9rem;
 }
 
@@ -65,17 +79,18 @@ body {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    color: rgba(255, 255, 255, 0.84);
+    color: #6e3f75;
     text-decoration: none;
-    border-radius: 0.7rem;
+    border-radius: 0.85rem;
     padding: 0.65rem 0.8rem;
-    transition: all 0.2s ease;
+    transition: all 0.24s ease;
 }
 
 .sidebar-link:hover,
 .sidebar-link.active {
     color: #ffffff;
-    background: rgba(21, 143, 119, 0.32);
+    background: linear-gradient(90deg, var(--rose-strong), var(--violet-main));
+    transform: translateX(3px);
 }
 
 .app-main {
@@ -84,9 +99,10 @@ body {
 }
 
 .app-navbar {
-    background: linear-gradient(90deg, #1f6aa5 0%, #158f77 100%);
+    background: linear-gradient(90deg, var(--rose-strong) 0%, var(--violet-main) 100%);
     border-radius: 1rem;
     padding: 0.9rem 1.1rem;
+    box-shadow: 0 10px 24px rgba(157, 78, 221, 0.2);
 }
 
 .connection-badge {
@@ -100,14 +116,19 @@ body {
     margin: 0;
 }
 
+.page-intro p {
+    color: var(--muted);
+}
+
 .metric-card,
 .chart-card,
-.connection-card {
+.connection-card,
+.dessert-card {
     background: var(--surface);
-    border-radius: 1rem;
+    border-radius: 1.1rem;
     padding: 1rem;
-    border: 1px solid #e6ebf1;
-    box-shadow: 0 7px 18px rgba(20, 42, 60, 0.06);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
     height: 100%;
 }
 
@@ -120,6 +141,7 @@ body {
     display: block;
     margin-top: 0.5rem;
     font-size: 1.35rem;
+    color: #7b287d;
 }
 
 .chart-card h3,
@@ -141,104 +163,127 @@ body {
 }
 
 .connection-card.selected {
-    border-color: #158f77;
-    box-shadow: 0 10px 22px rgba(21, 143, 119, 0.18);
+    border-color: var(--rose-strong);
+    box-shadow: 0 10px 22px rgba(255, 105, 180, 0.2);
 }
 
-.btn-active-connection {
-    background: #158f77;
-    border-color: #158f77;
-    color: #ffffff;
-    cursor: not-allowed;
+.btn-dessert {
+    border: none;
+    border-radius: 0.82rem;
+    padding: 0.6rem 1rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, var(--rose-strong), var(--violet-main));
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn-active-connection:hover {
-    background: #158f77;
-    border-color: #158f77;
-    color: #ffffff;
+.btn-dessert:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 18px rgba(157, 78, 221, 0.28);
 }
 
-.secondary-connection-form {
-    margin-top: 1rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid #e6ebf1;
+.form-control,
+.form-select {
+    border-radius: 0.8rem;
+    border-color: #e8cce7;
 }
 
-.forms-layout .forms-card {
-    border-left: 4px solid #d5e8f9;
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--violet-main);
+    box-shadow: 0 0 0 0.2rem rgba(157, 78, 221, 0.16);
 }
 
-.forms-toolbar-card {
-    border-left: 4px solid #b7d7f2;
-    background: linear-gradient(180deg, #ffffff 0%, #f3f9ff 100%);
-}
-
-.forms-generator-full {
-    min-height: calc(100vh - 250px);
-    border-left: 4px solid #b8efd6;
-}
-
-.forms-card--picker {
-    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-}
-
-.forms-card--generator {
-    background: linear-gradient(180deg, #ffffff 0%, #f8fffc 100%);
-}
-
-.forms-card--records {
-    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
-}
-
-.forms-card .btn-outline-secondary {
-    border-color: #c8d5e5;
-    color: #425e7a;
-}
-
-.forms-card .btn-outline-secondary:hover {
-    background: #eaf1f9;
-    border-color: #a9c0d9;
-    color: #27445f;
-}
-
-.forms-card .form-select,
-.forms-card .form-control,
-.forms-toolbar-card .form-select,
-.forms-toolbar-card .form-control {
-    border-radius: 0.7rem;
-}
-
-.forms-card .form-label,
-.forms-toolbar-card .form-label {
-    font-weight: 600;
-    color: #36536d;
-}
-
-.records-table-wrapper {
-    overflow-x: auto;
-    overflow-y: auto;
-    max-height: 380px;
-    border: 1px solid #e6ebf1;
-    border-radius: 0.9rem;
-}
-
-.records-table-wrapper table {
-    min-width: 100%;
-    margin: 0;
-}
-
-.records-table-wrapper thead th {
-    position: sticky;
-    top: 0;
-    background: #f5f8fc;
-    white-space: nowrap;
-}
-
-.records-table-wrapper tbody td {
-    white-space: nowrap;
-    max-width: 220px;
+.table-card {
     overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+.table thead th {
+    background: #fff2f8;
+    color: #7e3f7f;
+    border-bottom: 1px solid #efcfeb;
+    font-weight: 700;
+}
+
+.table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: #fff8fc;
+}
+
+.dessert-modal {
+    border-radius: 1rem;
+    border: 1px solid #f0d5eb;
+    background: linear-gradient(180deg, #fffafd 0%, #fff5f9 100%);
+}
+
+.modal-title {
+    color: #7f2f84;
+    font-weight: 700;
+}
+
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 0.7rem;
+    border: 1px solid #ebcfe6;
+    padding: 0.3rem 0.6rem;
+}
+
+.dataTables_wrapper .page-item.active .page-link {
+    background-color: var(--violet-main);
+    border-color: var(--violet-main);
+}
+
+.dataTables_wrapper .page-link {
+    color: #7e3f7f;
+}
+
+.toast {
+    border-radius: 0.8rem;
+}
+
+.connection-picker-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.connection-picker-card::after {
+    content: "";
+    position: absolute;
+    width: 170px;
+    height: 170px;
+    right: -40px;
+    bottom: -90px;
+    background: radial-gradient(circle, rgba(255, 182, 193, 0.5), transparent 70%);
+}
+
+.metric-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -30px -30px auto;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 182, 193, 0.45), rgba(255, 182, 193, 0));
+}
+
+@keyframes rise {
+    from {
+        transform: translateY(12px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 @media (max-width: 992px) {
@@ -254,5 +299,9 @@ body {
         height: 240px;
         min-height: 240px;
         max-height: 240px;
+    }
+
+    .app-main {
+        padding: 1rem;
     }
 }

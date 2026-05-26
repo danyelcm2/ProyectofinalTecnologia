@@ -36,23 +36,11 @@ function app_config(): array
                 'driver' => 'sqlsrv',
                 'host' => 'localhost',
                 'port' => 1433,
-                'database' => 'master',
+                'database' => 'kpi_app_sqlsrv',
                 'username' => 'sa',
                 'password' => '',
                 'charset' => 'utf8mb4',
-                'simulated' => true,
-            ],
-
-            'gcloud' => [
-                'label' => 'Google Cloud SQL',
-                'driver' => 'mysql',
-                'host' => '127.0.0.1',
-                'port' => 3306,
-                'database' => 'ventas_postres',
-                'username' => 'root',
-                'password' => '',
-                'charset' => 'utf8mb4',
-                'simulated' => true,
+                'simulated' => false,
             ],
 
             'postgres' => [

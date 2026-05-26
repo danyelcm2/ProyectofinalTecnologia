@@ -17,7 +17,6 @@ class ConnectionController
             'user' => $_SESSION['user'] ?? ['name' => 'Usuario'],
             'connections' => $connections,
             'selected' => $selected,
-            'pendingSelection' => $_SESSION['pending_db_connection'] ?? '',
             'flash' => $flash,
         ];
 
@@ -49,11 +48,10 @@ class ConnectionController
             db_validate_runtime_driver($selected, $meta);
             db_build_runtime_pdo($selected, $meta);
 
-            $_SESSION['pending_db_connection'] = $selected;
-            $_SESSION['db_2fa_verified'] = false;
-            $_SESSION['pending_2fa_context'] = 'db';
+            $_SESSION['db_connection'] = $selected;
+            $_SESSION['connection_flash'] = ['level' => 'success', 'message' => 'Conexión actualizada correctamente'];
 
-            header('Location: index.php?page=verify-2fa');
+            header('Location: index.php?page=dashboard');
             exit;
         } catch (RuntimeException $error) {
             $_SESSION['connection_flash'] = ['level' => 'danger', 'message' => 'Esta conexion requiere un driver PDO que no esta instalado en PHP.'];

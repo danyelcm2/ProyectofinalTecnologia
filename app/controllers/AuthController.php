@@ -48,9 +48,7 @@ class AuthController
                     $_SESSION['pending_2fa_context'] = 'login';
 
                     unset(
-                        $_SESSION['pending_db_connection'],
                         $_SESSION['db_connection'],
-                        $_SESSION['db_2fa_verified'],
                         $_SESSION['is_authenticated'],
                         $_SESSION['user']
                     );
@@ -73,30 +71,18 @@ class AuthController
     public function verifyTwoFactor(): void
     {
         $context = (string) ($_SESSION['pending_2fa_context'] ?? '');
-        if ($context === '') {
+        if ($context !== 'login') {
             header('Location: index.php?page=login');
             exit;
         }
 
-        if ($context === 'db' && empty($_SESSION['is_authenticated'])) {
-            header('Location: index.php?page=login');
-            exit;
-        }
-
-        if ($context === 'db' && empty($_SESSION['pending_db_connection'])) {
-            header('Location: index.php?page=connections');
-            exit;
-        }
-
-        if ($context === 'login' && empty($_SESSION['pending_login_user'])) {
+        if (empty($_SESSION['pending_login_user'])) {
             header('Location: index.php?page=login');
             exit;
         }
 
         $error = null;
-        $sessionUser = $context === 'login'
-            ? ($_SESSION['pending_login_user'] ?? [])
-            : ($_SESSION['user'] ?? []);
+        $sessionUser = $_SESSION['pending_login_user'] ?? [];
         $secret = (string) ($_SESSION['two_factor_secret'] ?? '');
 
         if ($secret === '' && !empty($sessionUser['email'])) {
@@ -116,25 +102,13 @@ class AuthController
             } elseif (!Totp::verify($secret, $code)) {
                 $error = 'Codigo incorrecto.';
             } else {
-                if ($context === 'login') {
-                    session_regenerate_id(true);
-                    $_SESSION['user'] = $_SESSION['pending_login_user'];
-                    $_SESSION['is_authenticated'] = true;
-                    $_SESSION['db_2fa_verified'] = false;
-                    $_SESSION['requires_2fa_setup'] = false;
-
-                    unset($_SESSION['pending_login_user'], $_SESSION['pending_2fa_context']);
-
-                    header('Location: index.php?page=connections');
-                    exit;
-                }
-
-                $_SESSION['db_connection'] = (string) $_SESSION['pending_db_connection'];
-                $_SESSION['db_2fa_verified'] = true;
+                session_regenerate_id(true);
+                $_SESSION['user'] = $_SESSION['pending_login_user'];
+                $_SESSION['is_authenticated'] = true;
                 $_SESSION['requires_2fa_setup'] = false;
-                unset($_SESSION['pending_db_connection'], $_SESSION['pending_2fa_context']);
+                unset($_SESSION['pending_login_user'], $_SESSION['pending_2fa_context']);
 
-                header('Location: index.php?page=dashboard');
+                header('Location: index.php?page=connections');
                 exit;
             }
         }
@@ -143,12 +117,8 @@ class AuthController
         $requiresSetup = !empty($_SESSION['requires_2fa_setup']);
         $otpauthUri = $requiresSetup && $secret !== '' ? Totp::provisioningUri($issuer, (string) ($sessionUser['email'] ?? ''), $secret) : '';
         $qrCodeUrl = $otpauthUri !== '' ? Totp::qrImageUrl($otpauthUri) : '';
-        $connection = $context === 'db'
-            ? db_connection_meta((string) $_SESSION['pending_db_connection'])
-            : null;
-
         $viewData = [
-            'title' => $context === 'login' ? 'Confirmar inicio de sesion' : 'Confirmar acceso a base de datos',
+            'title' => 'Confirmar inicio de sesion',
             'error' => $error,
             'manualKey' => $requiresSetup ? $secret : '',
             'otpauthUri' => $otpauthUri,
@@ -156,8 +126,7 @@ class AuthController
             'issuer' => $issuer,
             'email' => (string) ($sessionUser['email'] ?? ''),
             'requiresSetup' => $requiresSetup,
-            'connectionLabel' => (string) ($connection['label'] ?? ''),
-            'isLoginStep' => $context === 'login',
+            'isLoginStep' => true,
         ];
 
         require __DIR__ . '/../views/auth/twofa.php';

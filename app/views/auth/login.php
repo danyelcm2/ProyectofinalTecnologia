@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+
+$viewData = $viewData ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -16,7 +18,7 @@ declare(strict_types=1);
         <div class="card auth-card shadow-lg border-0">
             <div class="card-body p-4 p-md-5">
                 <h1 class="h3 mb-2 text-white">Acceso seguro</h1>
-                <p class="text-white-50 mb-4">Inicia sesion para administrar KPI y formularios dinamicos.</p>
+                <p class="text-white-50 mb-4">Inicia sesion para administrar KPI y mantenimientos de postres.</p>
 
                 <?php if (!empty($viewData['error'])): ?>
                     <div class="alert alert-danger py-2"><?= htmlspecialchars((string) $viewData['error'], ENT_QUOTES, 'UTF-8'); ?></div>
@@ -31,7 +33,7 @@ declare(strict_types=1);
                         <label for="password" class="form-label text-white">Password</label>
                         <input type="password" class="form-control form-control-lg" id="password" name="password" minlength="8" required>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">Continuar</button>
+                    <button type="submit" class="btn btn-dessert btn-lg w-100 mt-2">Continuar</button>
                 </form>
             </div>
         </div>

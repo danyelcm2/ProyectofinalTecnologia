@@ -24,14 +24,20 @@ class KpiModel
         $pdo = db_connect();
         $this->assertRequiredSchema($pdo);
 
+        $ventasPorDiaSql = 'SELECT CAST(fecha AS DATE) AS etiqueta, COALESCE(SUM(total), 0) AS valor
+             FROM ventas
+             GROUP BY CAST(fecha AS DATE)
+             ORDER BY CAST(fecha AS DATE) DESC';
+        $topPostresSql = 'SELECT p.nombre AS etiqueta, COALESCE(SUM(d.cantidad), 0) AS valor
+             FROM detalle_ventas d
+             JOIN productos p ON p.id = d.producto_id
+             GROUP BY p.nombre
+             ORDER BY valor DESC';
+
         return [
             'ventasPorDia' => $this->dataset(
                 $pdo,
-                'SELECT CAST(fecha AS DATE) AS etiqueta, COALESCE(SUM(total), 0) AS valor
-                 FROM ventas
-                 GROUP BY CAST(fecha AS DATE)
-                 ORDER BY CAST(fecha AS DATE) DESC
-                 LIMIT 14',
+                $this->withLimit($pdo, $ventasPorDiaSql, 14),
                 true
             ),
             'ventasPorCategoria' => $this->dataset(
@@ -44,12 +50,7 @@ class KpiModel
             ),
             'topPostres' => $this->dataset(
                 $pdo,
-                'SELECT p.nombre AS etiqueta, COALESCE(SUM(d.cantidad), 0) AS valor
-                 FROM detalle_ventas d
-                 JOIN productos p ON p.id = d.producto_id
-                 GROUP BY p.nombre
-                 ORDER BY valor DESC
-                 LIMIT 8'
+                $this->withLimit($pdo, $topPostresSql, 8)
             ),
         ];
     }
@@ -100,10 +101,24 @@ class KpiModel
 
         if ($driver === 'pgsql') {
             $rows = $pdo->query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'")->fetchAll(PDO::FETCH_NUM);
+        } elseif ($driver === 'sqlsrv') {
+            $rows = $pdo->query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'dbo'")->fetchAll(PDO::FETCH_NUM);
         } else {
             $rows = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_NUM);
         }
 
-        return array_map(static fn(array $row): string => (string) $row[0], $rows);
+        return array_map(static fn(array $row): string => strtolower((string) $row[0]), $rows);
+    }
+
+    private function withLimit(PDO $pdo, string $sql, int $limit): string
+    {
+        $safeLimit = max(1, $limit);
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        if ($driver === 'sqlsrv') {
+            return preg_replace('/^\s*SELECT\s+/i', 'SELECT TOP ' . $safeLimit . ' ', $sql, 1) ?: $sql;
+        }
+
+        return $sql . ' LIMIT ' . $safeLimit;
     }
 }
