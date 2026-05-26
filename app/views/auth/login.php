@@ -16,38 +16,68 @@ $viewData = $viewData ?? [];
     <link rel="stylesheet" href="../assets/css/app.css">
 </head>
 <body class="auth-body">
-    <div class="auth-wrapper">
-        <div class="card auth-card shadow-lg border-0">
-            <div class="card-body p-4 p-md-5">
-                <div class="login-brand">
-                    <div class="login-brand-icon"><i class="fa-solid fa-cake-candles"></i></div>
-                    <div class="login-brand-name">Sweet Desk</div>
-                </div>
-                <div class="login-art" aria-hidden="true">
-                    <i class="fa-solid fa-ice-cream"></i>
-                    <i class="fa-solid fa-cookie-bite"></i>
-                    <i class="fa-solid fa-mug-hot"></i>
-                </div>
-                <h1 class="h3 mb-2 text-white">Acceso seguro</h1>
-                <p class="text-white-50 mb-4">Inicia sesion para administrar KPI y mantenimientos de postres.</p>
-
-                <?php if (!empty($viewData['error'])): ?>
-                    <div class="alert alert-danger py-2"><?= htmlspecialchars((string) $viewData['error'], ENT_QUOTES, 'UTF-8'); ?></div>
-                <?php endif; ?>
-
-                <form method="POST" action="index.php?page=login" novalidate>
-                    <div class="mb-3">
-                        <label for="email" class="form-label text-white"><i class="fa-solid fa-envelope me-1"></i>Email</label>
-                        <input type="email" class="form-control form-control-lg" id="email" name="email" required value="<?= htmlspecialchars((string) ($viewData['email'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="usuario@correo.com">
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label text-white"><i class="fa-solid fa-lock me-1"></i>Password</label>
-                        <input type="password" class="form-control form-control-lg" id="password" name="password" minlength="8" required placeholder="Ingresa tu clave">
-                    </div>
-                    <button type="submit" class="btn btn-dessert btn-lg w-100 mt-2"><i class="fa-solid fa-right-to-bracket me-2"></i>Entrar</button>
-                </form>
+    <div class="auth-layout">
+        <section class="auth-visual">
+            <div class="auth-badge">DulceMomento</div>
+            <h1 class="auth-brand">DulceMomento</h1>
+            <p class="auth-subtitle">Sistema de Gestion de Postres</p>
+            <div class="auth-floaters" aria-hidden="true">
+                <span>🧁</span>
+                <span>💗</span>
+                <span>✨</span>
+                <span>🍓</span>
+                <span>🍩</span>
+                <span>🌸</span>
             </div>
-        </div>
+            <div class="auth-cake-panel" aria-hidden="true">
+                <div class="cake-icon">🎂</div>
+            </div>
+        </section>
+
+        <section class="auth-form-zone">
+            <div class="card auth-card border-0">
+                <div class="card-body p-4 p-md-5">
+                    <div class="login-brand">
+                        <div class="login-brand-icon"><i class="fa-solid fa-cake-candles"></i></div>
+                        <div class="login-brand-name">DulceMomento</div>
+                    </div>
+                    <div class="login-art" aria-hidden="true">
+                        <i class="fa-solid fa-ice-cream"></i>
+                        <i class="fa-solid fa-cookie-bite"></i>
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                    <h2 class="auth-title">Bienvenido(a)</h2>
+                    <p class="auth-message">Inicia sesion para continuar</p>
+
+                    <?php if (!empty($viewData['error'])): ?>
+                        <div class="alert alert-danger py-2"><?= htmlspecialchars((string) $viewData['error'], ENT_QUOTES, 'UTF-8'); ?></div>
+                    <?php endif; ?>
+
+                    <form method="POST" action="index.php?page=login" novalidate>
+                        <div class="mb-3">
+                            <label for="email" class="form-label auth-label">Usuario</label>
+                            <input type="email" class="form-control form-control-lg" id="email" name="email" required value="<?= htmlspecialchars((string) ($viewData['email'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="Ingresa tu usuario">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label auth-label">Contrasena</label>
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" minlength="8" required placeholder="Ingresa tu contrasena">
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mb-3 auth-options">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Recordarme</label>
+                            </div>
+                            <a class="auth-link" href="#">¿Olvidaste tu contrasena?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-dessert btn-lg w-100 mt-2"><i class="fa-solid fa-right-to-bracket me-2"></i>Iniciar sesion</button>
+                    </form>
+
+                    <p class="auth-copyright">© 2026 DulceMomento. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </section>
     </div>
 </body>
 </html>

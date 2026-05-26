@@ -410,10 +410,11 @@
         const modalEl = document.getElementById('productoModal');
         const form = document.getElementById('productoForm');
         const modal = resolveModal(modalEl);
+        const formCard = form ? form.closest('.side-form-card') : null;
         const rowsById = new Map();
 
         async function reload() {
-            renderSkeleton(table, 5);
+            renderSkeleton(table, 7);
             startLoader('Cargando productos...');
             const result = await getJson('index.php?page=api_productos&perPage=500');
             stopLoader();
@@ -428,12 +429,16 @@
 
             extractRows(result).forEach(function (row) {
                 rowsById.set(String(row.id), row);
+                const categoria = 'Postres';
+                const estado = Number(row.precio || 0) > 0 ? 'Activo' : 'Inactivo';
                 tbody.insertAdjacentHTML('beforeend', ''
                     + '<tr>'
                     + '<td>' + row.id + '</td>'
+                    + '<td><span class="postre-thumb">🍰</span></td>'
                     + '<td>' + (row.nombre || '') + '</td>'
+                    + '<td><span class="category-pill">' + categoria + '</span></td>'
                     + '<td>' + money(Number(row.precio || 0)) + '</td>'
-                    + '<td>' + (row.created_at || '') + '</td>'
+                    + '<td><span class="estado-pill ' + (estado === 'Activo' ? 'estado-activo' : 'estado-inactivo') + '">' + estado + '</span></td>'
                     + '<td>' + buildActions(row.id, 'producto') + '</td>'
                     + '</tr>');
             });
@@ -447,8 +452,16 @@
             createBtn.addEventListener('click', function () {
                 form.reset();
                 document.getElementById('producto_id').value = '';
-                setModalTitle('productoModalTitle', 'Nuevo producto');
+                setModalTitle('productoModalTitle', 'Nuevo Postre');
                 modal.show();
+
+                if (formCard) {
+                    formCard.classList.add('pulse-highlight');
+                    setTimeout(function () {
+                        formCard.classList.remove('pulse-highlight');
+                    }, 850);
+                    formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             });
         }
 
@@ -463,12 +476,25 @@
                 return;
             }
 
-            setModalTitle('productoModalTitle', 'Editar producto #' + row.id);
+            setModalTitle('productoModalTitle', 'Editar Postre #' + row.id);
             document.getElementById('producto_id').value = row.id;
             document.getElementById('producto_nombre').value = row.nombre || '';
             document.getElementById('producto_precio').value = row.precio || '';
             modal.show();
+
+            if (formCard) {
+                formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         });
+
+        const resetBtn = document.querySelector('[data-action="reset-producto-form"]');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                form.reset();
+                document.getElementById('producto_id').value = '';
+                setModalTitle('productoModalTitle', 'Nuevo Postre');
+            });
+        }
 
         form.addEventListener('submit', async function (event) {
             event.preventDefault();

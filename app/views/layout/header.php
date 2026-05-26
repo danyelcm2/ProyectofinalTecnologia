@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$title = $viewData['title'] ?? 'KPI Control Center';
+$title = $viewData['title'] ?? 'DulceMomento';
 $active = $viewData['active'] ?? '';
 $user = $viewData['user'] ?? ['name' => 'Usuario'];
 $connectionLabel = db_selected_meta()['label'];
@@ -23,39 +23,63 @@ $connectionLabel = db_selected_meta()['label'];
 <?php if (!empty($_SESSION['is_authenticated'])): ?>
     <div class="dashboard-shell">
         <aside class="app-sidebar">
-            <div>
-                <h1 class="brand-title">Sweet Desk</h1>
-                <p class="brand-subtitle">Gestion de postres</p>
+            <div class="sidebar-brand">
+                <h1 class="brand-title">🧁 DulceMomento</h1>
+                <p class="brand-subtitle">Administracion pastel premium</p>
             </div>
             <nav class="nav flex-column gap-2 mt-4">
-                <a class="sidebar-link <?= $active === 'connections' ? 'active' : ''; ?>" href="index.php?page=connections">
-                    <i class="fa-solid fa-database"></i> Conexiones
-                </a>
                 <a class="sidebar-link <?= $active === 'dashboard' ? 'active' : ''; ?>" href="index.php?page=dashboard">
-                    <i class="fa-solid fa-chart-line"></i> Dashboard KPI
-                </a>
-                <a class="sidebar-link <?= $active === 'clientes' ? 'active' : ''; ?>" href="index.php?page=clientes">
-                    <i class="fa-solid fa-users"></i> Clientes
+                    <i class="fa-solid fa-house"></i> Dashboard
                 </a>
                 <a class="sidebar-link <?= $active === 'productos' ? 'active' : ''; ?>" href="index.php?page=productos">
-                    <i class="fa-solid fa-ice-cream"></i> Productos
+                    <i class="fa-solid fa-cake-candles"></i> Postres
+                </a>
+                <a class="sidebar-link" href="#">
+                    <i class="fa-solid fa-folder-open"></i> Categorias
+                </a>
+                <a class="sidebar-link" href="#">
+                    <i class="fa-solid fa-glass-water"></i> Ingredientes
                 </a>
                 <a class="sidebar-link <?= $active === 'ventas' ? 'active' : ''; ?>" href="index.php?page=ventas">
-                    <i class="fa-solid fa-receipt"></i> Ventas
+                    <i class="fa-solid fa-credit-card"></i> Ventas
+                </a>
+                <a class="sidebar-link <?= $active === 'clientes' ? 'active' : ''; ?>" href="index.php?page=clientes">
+                    <i class="fa-solid fa-user"></i> Clientes
                 </a>
                 <a class="sidebar-link <?= $active === 'detalle_ventas' ? 'active' : ''; ?>" href="index.php?page=detalle_ventas">
-                    <i class="fa-solid fa-list-check"></i> Detalle ventas
+                    <i class="fa-solid fa-box"></i> Pedidos
+                </a>
+                <a class="sidebar-link" href="#">
+                    <i class="fa-solid fa-chart-bar"></i> Reportes
+                </a>
+                <a class="sidebar-link" href="#">
+                    <i class="fa-solid fa-user-circle"></i> Usuarios
+                </a>
+                <a class="sidebar-link <?= $active === 'connections' ? 'active' : ''; ?>" href="index.php?page=connections">
+                    <i class="fa-solid fa-gear"></i> Configuracion
                 </a>
                 <a class="sidebar-link" href="index.php?page=logout">
-                    <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesion
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Salir
                 </a>
             </nav>
+
+            <div class="sidebar-decoration">🍰 ✨ 💗</div>
         </aside>
         <main class="app-main">
             <nav class="navbar app-navbar mb-4">
-                <div class="container-fluid px-0">
-                    <span class="badge connection-badge"><?= htmlspecialchars($connectionLabel, ENT_QUOTES, 'UTF-8'); ?></span>
-                    <span class="text-white small"><i class="fa-solid fa-cake-candles me-1"></i>Hola, <?= htmlspecialchars((string) $user['name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                <div class="container-fluid px-0 topbar-grid">
+                    <span class="badge connection-badge"><i class="fa-solid fa-database me-1"></i><?= htmlspecialchars($connectionLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+
+                    <div class="top-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" class="top-search" placeholder="Buscar...">
+                    </div>
+
+                    <div class="top-user">
+                        <button class="top-icon-btn" type="button" aria-label="Notificaciones"><i class="fa-solid fa-bell"></i></button>
+                        <span class="top-avatar">👩🏻‍🍳</span>
+                        <span class="top-user-name"><?= htmlspecialchars((string) $user['name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    </div>
                 </div>
             </nav>
 <?php endif; ?>
