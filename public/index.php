@@ -107,6 +107,27 @@ function requires_db_access(string $page): bool
     ], true);
 }
 
+function app_base_path(): string
+{
+    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+    if ($scriptDir === '.' || $scriptDir === '/') {
+        $scriptDir = '';
+    }
+
+    $scriptDir = rtrim($scriptDir, '/');
+    if ($scriptDir !== '' && str_ends_with($scriptDir, '/public')) {
+        $scriptDir = substr($scriptDir, 0, -7);
+    }
+
+    return $scriptDir;
+}
+
+function asset_url(string $path): string
+{
+    $cleanPath = ltrim($path, '/');
+    return app_base_path() . '/assets/' . $cleanPath;
+}
+
 $page = $_GET['page']
     ?? (!empty($_SESSION['pending_2fa_context'])
         ? 'verify-2fa'

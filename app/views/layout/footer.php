@@ -14,6 +14,6 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/js/app.js');
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="../assets/js/app.js?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8'); ?>"></script>
+<script src="<?= htmlspecialchars(asset_url('js/app.js'), ENT_QUOTES, 'UTF-8'); ?>?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>
