@@ -38,7 +38,7 @@ require __DIR__ . '/../layout/header.php';
                 class="form-control"
                 id="sqlite_path"
                 name="sqlite_path"
-                placeholder="./database/postres.db"
+                placeholder="./database/negocio.db"
                 value="<?= htmlspecialchars((string) ($viewData['sqlitePath'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
             >
         </div>

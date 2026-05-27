@@ -17,11 +17,11 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
     <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/app.css'), ENT_QUOTES, 'UTF-8'); ?>?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8'); ?>">
 </head>
 <body class="auth-body">
-    <div class="auth-wrapper">
-        <div class="card auth-card shadow-lg border-0">
+    <div class="auth-wrapper auth-wrapper-centered">
+        <div class="card auth-card auth-card-centered shadow-lg border-0">
             <div class="card-body p-4 p-md-5">
-                <h1 class="h3 mb-2 text-white">Confirmar acceso con 2FA</h1>
-                <p class="text-white-50 mb-3">
+                <h1 class="h3 mb-2 auth-title text-start">Confirmar acceso con 2FA</h1>
+                <p class="auth-message text-start mb-3">
                     Valida tu codigo de Google Authenticator para completar el inicio de sesion.
                 </p>
 
@@ -52,21 +52,21 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
                             <?php endif; ?>
                         </div>
                         <div class="col-12 col-md-7">
-                            <label for="otpauthUri" class="form-label text-white">Enlace de configuracion OTP</label>
+                            <label for="otpauthUri" class="form-label auth-label">Enlace de configuracion OTP</label>
                             <textarea class="form-control" id="otpauthUri" rows="4" readonly><?= htmlspecialchars((string) $viewData['otpauthUri'], ENT_QUOTES, 'UTF-8'); ?></textarea>
-                            <div class="form-text text-white-50">Escanea el QR o agrega la cuenta manualmente usando la clave secreta.</div>
+                            <div class="form-text">Escanea el QR o agrega la cuenta manualmente usando la clave secreta.</div>
                         </div>
                     </div>
                 <?php endif; ?>
 
                 <form method="POST" action="index.php?page=verify-2fa" novalidate>
                     <div class="mb-3">
-                        <label for="code" class="form-label text-white">Codigo</label>
+                        <label for="code" class="form-label auth-label">Codigo</label>
                         <input type="text" class="form-control form-control-lg" id="code" name="code" pattern="[0-9]{6}" maxlength="6" required>
                     </div>
                     <button type="submit" class="btn btn-dessert btn-lg w-100">Validar codigo</button>
                 </form>
-                <a href="index.php?page=login" class="btn btn-link text-white-50 w-100 mt-3">
+                <a href="index.php?page=login" class="btn btn-link auth-link w-100 mt-3">
                     Volver al login
                 </a>
             </div>

@@ -5,34 +5,34 @@ require __DIR__ . '/../layout/header.php';
 ?>
 <section class="page-intro mb-4">
     <h2 class="mb-2">Dashboard</h2>
-    <p class="text-secondary mb-0">Bienvenido Administrador. Vista premium para la gestion de tu reposteria.</p>
+    <p class="text-secondary mb-0">Bienvenido Administrador. Vista premium para la gestion de tu negocio.</p>
 </section>
 
 <section class="row g-3 mb-4" id="summaryCards">
     <div class="col-12 col-md-6 col-xl-3">
         <div class="metric-card metric-icon-card">
-            <span class="metric-icon">💲</span>
+            <span class="metric-icon"><i class="fa-solid fa-sack-dollar"></i></span>
             <span class="metric-label">Ventas del dia</span>
             <strong class="metric-value" data-metric="totalVentas">-</strong>
         </div>
     </div>
     <div class="col-12 col-md-6 col-xl-3">
         <div class="metric-card metric-icon-card">
-            <span class="metric-icon">📦</span>
+            <span class="metric-icon"><i class="fa-solid fa-box"></i></span>
             <span class="metric-label">Pedidos del dia</span>
             <strong class="metric-value" data-metric="montoTotal">-</strong>
         </div>
     </div>
     <div class="col-12 col-md-6 col-xl-3">
         <div class="metric-card metric-icon-card">
-            <span class="metric-icon">🍰</span>
-            <span class="metric-label">Postres registrados</span>
+            <span class="metric-icon"><i class="fa-solid fa-box-open"></i></span>
+                <span class="metric-label">Productos registrados</span>
             <strong class="metric-value" data-metric="ticketPromedio">-</strong>
         </div>
     </div>
     <div class="col-12 col-md-6 col-xl-3">
         <div class="metric-card metric-icon-card">
-            <span class="metric-icon">👤</span>
+            <span class="metric-icon"><i class="fa-solid fa-user"></i></span>
             <span class="metric-label">Total clientes</span>
             <strong class="metric-value" data-metric="totalClientes">-</strong>
         </div>
@@ -50,7 +50,7 @@ require __DIR__ . '/../layout/header.php';
     </div>
     <div class="col-12 col-xl-5">
         <div class="chart-card">
-            <h3>Postres mas vendidos</h3>
+                <h3>Productos mas vendidos</h3>
             <div class="chart-frame chart-frame-sm">
                 <canvas id="chartCategorias"></canvas>
             </div>
@@ -66,18 +66,6 @@ require __DIR__ . '/../layout/header.php';
             <div class="chart-frame chart-frame-sm">
                 <canvas id="chartPostres"></canvas>
             </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-xl-4">
-        <div class="chart-card reminder-card">
-            <h3>Recordatorios</h3>
-            <ul class="reminder-list mb-0">
-                <li>💗 Revisar stock de ingredientes</li>
-                <li>🍓 Confirmar pedidos pendientes</li>
-                <li>✨ Actualizar promociones de temporada</li>
-                <li>🧁 Reunion de equipo 5:00 PM</li>
-            </ul>
         </div>
     </div>
 </section>

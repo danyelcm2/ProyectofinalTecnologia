@@ -19,19 +19,17 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
 <body class="auth-body">
     <div class="auth-layout">
         <section class="auth-visual">
-            <div class="auth-badge">DulceMomento</div>
-            <h1 class="auth-brand">DulceMomento</h1>
-            <p class="auth-subtitle">Sistema de Gestion de Postres</p>
+            <div class="auth-badge">SistemaMultiBD</div>
+            <h1 class="auth-brand">SistemaMultiBD</h1>
+            <p class="auth-subtitle">Sistema de Gestion Multi Base de Datos</p>
             <div class="auth-floaters" aria-hidden="true">
-                <span>🧁</span>
-                <span>💗</span>
-                <span>✨</span>
-                <span>🍓</span>
-                <span>🍩</span>
-                <span>🌸</span>
+                <span><i class="fa-solid fa-star"></i></span>
+                <span><i class="fa-solid fa-heart"></i></span>
+                <span><i class="fa-solid fa-sparkles"></i></span>
+                <span><i class="fa-solid fa-circle"></i></span>
             </div>
             <div class="auth-cake-panel" aria-hidden="true">
-                <div class="cake-icon">🎂</div>
+                <div class="cake-icon"><i class="fa-solid fa-layer-group"></i></div>
             </div>
         </section>
 
@@ -40,7 +38,7 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
                 <div class="card-body p-4 p-md-5">
                     <div class="login-brand">
                         <div class="login-brand-icon"><i class="fa-solid fa-cake-candles"></i></div>
-                        <div class="login-brand-name">DulceMomento</div>
+                        <div class="login-brand-name">SistemaMultiBD</div>
                     </div>
                     <div class="login-art" aria-hidden="true">
                         <i class="fa-solid fa-ice-cream"></i>
@@ -75,7 +73,7 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
                         <button type="submit" class="btn btn-dessert btn-lg w-100 mt-2"><i class="fa-solid fa-right-to-bracket me-2"></i>Iniciar sesion</button>
                     </form>
 
-                    <p class="auth-copyright">© 2026 DulceMomento. Todos los derechos reservados.</p>
+                    <p class="auth-copyright">© 2026 SistemaMultiBD. Todos los derechos reservados.</p>
                 </div>
             </div>
         </section>

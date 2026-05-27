@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$title = $viewData['title'] ?? 'DulceMomento';
+$title = $viewData['title'] ?? 'SistemaMultiBD';
 $active = $viewData['active'] ?? '';
 $user = $viewData['user'] ?? ['name' => 'Usuario'];
 $connectionLabel = db_selected_meta()['label'];
@@ -25,21 +25,15 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
     <div class="dashboard-shell">
         <aside class="app-sidebar">
             <div class="sidebar-brand">
-                <h1 class="brand-title">🧁 DulceMomento</h1>
-                <p class="brand-subtitle">Administracion pastel premium</p>
+                <h1 class="brand-title">SistemaMultiBD</h1>
+                <p class="brand-subtitle">Administracion de negocio</p>
             </div>
             <nav class="nav flex-column gap-2 mt-4">
                 <a class="sidebar-link <?= $active === 'dashboard' ? 'active' : ''; ?>" href="index.php?page=dashboard">
                     <i class="fa-solid fa-house"></i> Dashboard
                 </a>
                 <a class="sidebar-link <?= $active === 'productos' ? 'active' : ''; ?>" href="index.php?page=productos">
-                    <i class="fa-solid fa-cake-candles"></i> Postres
-                </a>
-                <a class="sidebar-link" href="#">
-                    <i class="fa-solid fa-folder-open"></i> Categorias
-                </a>
-                <a class="sidebar-link" href="#">
-                    <i class="fa-solid fa-glass-water"></i> Ingredientes
+                    <i class="fa-solid fa-box-open"></i> Productos
                 </a>
                 <a class="sidebar-link <?= $active === 'ventas' ? 'active' : ''; ?>" href="index.php?page=ventas">
                     <i class="fa-solid fa-credit-card"></i> Ventas
@@ -49,9 +43,6 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
                 </a>
                 <a class="sidebar-link <?= $active === 'detalle_ventas' ? 'active' : ''; ?>" href="index.php?page=detalle_ventas">
                     <i class="fa-solid fa-box"></i> Pedidos
-                </a>
-                <a class="sidebar-link" href="#">
-                    <i class="fa-solid fa-chart-bar"></i> Reportes
                 </a>
                 <a class="sidebar-link" href="#">
                     <i class="fa-solid fa-user-circle"></i> Usuarios
@@ -64,7 +55,7 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
                 </a>
             </nav>
 
-            <div class="sidebar-decoration">🍰 ✨ 💗</div>
+            <div class="sidebar-decoration">Panel principal</div>
         </aside>
         <main class="app-main">
             <nav class="navbar app-navbar mb-4">
@@ -78,7 +69,7 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
 
                     <div class="top-user">
                         <button class="top-icon-btn" type="button" aria-label="Notificaciones"><i class="fa-solid fa-bell"></i></button>
-                        <span class="top-avatar">👩🏻‍🍳</span>
+                        <span class="top-avatar"><i class="fa-solid fa-user"></i></span>
                         <span class="top-user-name"><?= htmlspecialchars((string) $user['name'], ENT_QUOTES, 'UTF-8'); ?></span>
                     </div>
                 </div>

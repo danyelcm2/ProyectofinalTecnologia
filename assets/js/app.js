@@ -429,12 +429,12 @@
 
             extractRows(result).forEach(function (row) {
                 rowsById.set(String(row.id), row);
-                const categoria = 'Postres';
+                const categoria = 'Productos';
                 const estado = Number(row.precio || 0) > 0 ? 'Activo' : 'Inactivo';
                 tbody.insertAdjacentHTML('beforeend', ''
                     + '<tr>'
                     + '<td>' + row.id + '</td>'
-                    + '<td><span class="postre-thumb">🍰</span></td>'
+                    + '<td><span class="postre-thumb"><i class="fa-solid fa-box-open"></i></span></td>'
                     + '<td>' + (row.nombre || '') + '</td>'
                     + '<td><span class="category-pill">' + categoria + '</span></td>'
                     + '<td>' + money(Number(row.precio || 0)) + '</td>'
@@ -452,7 +452,7 @@
             createBtn.addEventListener('click', function () {
                 form.reset();
                 document.getElementById('producto_id').value = '';
-                setModalTitle('productoModalTitle', 'Nuevo Postre');
+                setModalTitle('productoModalTitle', 'Nuevo Producto');
                 modal.show();
 
                 if (formCard) {
@@ -476,7 +476,7 @@
                 return;
             }
 
-            setModalTitle('productoModalTitle', 'Editar Postre #' + row.id);
+            setModalTitle('productoModalTitle', 'Editar Producto #' + row.id);
             document.getElementById('producto_id').value = row.id;
             document.getElementById('producto_nombre').value = row.nombre || '';
             document.getElementById('producto_precio').value = row.precio || '';
@@ -492,7 +492,7 @@
             resetBtn.addEventListener('click', function () {
                 form.reset();
                 document.getElementById('producto_id').value = '';
-                setModalTitle('productoModalTitle', 'Nuevo Postre');
+                setModalTitle('productoModalTitle', 'Nuevo Producto');
             });
         }
 

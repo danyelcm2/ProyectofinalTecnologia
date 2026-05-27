@@ -5,8 +5,8 @@ $viewData = $viewData ?? [];
 require __DIR__ . '/../layout/header.php';
 ?>
 <section class="page-intro mb-4">
-    <h2 class="mb-2">🧁 Mantenimiento de Postres</h2>
-    <p class="text-muted mb-0">Administra el catalogo de postres del sistema.</p>
+    <h2 class="mb-2">Mantenimiento de Productos</h2>
+    <p class="text-muted mb-0">Administra el catalogo de productos del sistema.</p>
 </section>
 
 <section class="row g-3">
@@ -18,7 +18,7 @@ require __DIR__ . '/../layout/header.php';
                     <span>Conexion activa: <?= htmlspecialchars((string) $viewData['connection']['label'], ENT_QUOTES, 'UTF-8'); ?></span>
                 </div>
                 <button class="btn btn-dessert" type="button" data-action="create-producto">
-                    <i class="fa-solid fa-plus"></i> Nuevo Postre
+                    <i class="fa-solid fa-plus"></i> Nuevo Producto
                 </button>
             </div>
         </div>
@@ -47,15 +47,15 @@ require __DIR__ . '/../layout/header.php';
         <div class="dessert-card side-form-card">
             <form id="productoForm" novalidate>
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="modal-title mb-0" id="productoModalTitle">Nuevo Postre</h5>
-                    <span class="sparkle-badge">✨</span>
+                    <h5 class="modal-title mb-0" id="productoModalTitle">Nuevo Producto</h5>
+                    <span class="sparkle-badge"><i class="fa-solid fa-circle"></i></span>
                 </div>
 
                 <input type="hidden" name="id" id="producto_id">
 
                 <div class="mb-3">
                     <label class="form-label">Subir imagen</label>
-                    <div class="upload-mock">📷 PNG, JPG hasta 2MB</div>
+                    <div class="upload-mock"><i class="fa-solid fa-camera"></i> PNG, JPG hasta 2MB</div>
                 </div>
 
                 <div class="mb-3">
@@ -80,7 +80,7 @@ require __DIR__ . '/../layout/header.php';
 
                 <div class="mb-3">
                     <label class="form-label" for="descripcion_visual">Descripcion</label>
-                    <textarea id="descripcion_visual" class="form-control" rows="4" placeholder="Describe el postre..."></textarea>
+                    <textarea id="descripcion_visual" class="form-control" rows="4" placeholder="Describe el producto..."></textarea>
                 </div>
 
                 <div class="d-flex gap-2 mt-3">
