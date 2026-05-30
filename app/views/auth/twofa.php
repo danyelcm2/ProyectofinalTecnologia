@@ -3,10 +3,7 @@
 declare(strict_types=1);
 
 $viewData = $viewData ?? [];
-$assetFile = __DIR__ . '/../../../assets/css/app.css';
-$assetVersion = is_file($assetFile)
-    ? (string) md5_file($assetFile)
-    : (string) time();
+$assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
 ?>
 <!DOCTYPE html>
 <html lang="es">

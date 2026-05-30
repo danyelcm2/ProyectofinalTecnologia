@@ -6,10 +6,7 @@ $title = $viewData['title'] ?? 'SistemaMultiBD';
 $active = $viewData['active'] ?? '';
 $user = $viewData['user'] ?? ['name' => 'Usuario'];
 $connectionLabel = db_selected_meta()['label'];
-$assetFile = __DIR__ . '/../../../assets/css/app.css';
-$assetVersion = is_file($assetFile)
-    ? (string) md5_file($assetFile)
-    : (string) time();
+$assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
 ?>
 <!DOCTYPE html>
 <html lang="es">
