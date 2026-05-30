@@ -1,7 +1,10 @@
 <?php
 
 declare(strict_types=1);
-$assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/js/app.js');
+$assetFile = __DIR__ . '/../../../assets/js/app.js';
+$assetVersion = is_file($assetFile)
+    ? (string) md5_file($assetFile)
+    : (string) time();
 ?>
 <?php if (!empty($_SESSION['is_authenticated'])): ?>
         </main>
