@@ -20,7 +20,7 @@ function app_config(): array
         'connections' => [
 
             'mysql' => [
-                'label' => 'SQL',
+                'label' => 'MySQL',
                 'driver' => 'mysql',
                 'host' => 'localhost',
                 'port' => 3306,
