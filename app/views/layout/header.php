@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$title = $viewData['title'] ?? 'SistemaMultiBD';
+$title = $viewData['title'] ?? 'Proyecto Tecnologias';
 $active = $viewData['active'] ?? '';
 $user = $viewData['user'] ?? ['name' => 'Usuario'];
 $connectionLabel = db_selected_meta()['label'];
@@ -28,12 +28,13 @@ $assetVersion = is_file($assetFile)
     <div class="dashboard-shell">
         <aside class="app-sidebar">
             <div class="sidebar-brand">
-                <span class="brand-mark">SM</span>
+                <span class="brand-mark">SR</span>
                 <div>
-                    <h1 class="brand-title">SistemaMultiBD</h1>
-                    <p class="brand-subtitle">Control de operacion</p>
+                    <h1 class="brand-title">Proyecto Tecnologias</h1>
+                    <p class="brand-subtitle">Sala de control</p>
                 </div>
             </div>
+            <p class="sidebar-menu-title">Navegacion</p>
             <nav class="nav flex-column gap-2 mt-4 sidebar-nav">
                 <a class="sidebar-link <?= $active === 'dashboard' ? 'active' : ''; ?>" href="index.php?page=dashboard">
                     <span class="sidebar-link-icon"><i class="fa-solid fa-house"></i></span>
@@ -55,6 +56,9 @@ $assetVersion = is_file($assetFile)
                     <span class="sidebar-link-icon"><i class="fa-solid fa-box"></i></span>
                     <span>Pedidos</span>
                 </a>
+            </nav>
+            <p class="sidebar-menu-title mt-4">Sistema</p>
+            <nav class="nav flex-column gap-2 sidebar-nav-short">
                 <a class="sidebar-link" href="#">
                     <span class="sidebar-link-icon"><i class="fa-solid fa-user-circle"></i></span>
                     <span>Usuarios</span>
@@ -69,14 +73,17 @@ $assetVersion = is_file($assetFile)
                 </a>
             </nav>
 
-            <div class="sidebar-decoration">Actualizacion en tiempo real</div>
+            <div class="sidebar-decoration">
+                <p class="sidebar-decoration-label mb-1">Estado</p>
+                <strong class="sidebar-decoration-value">Operativo</strong>
+            </div>
         </aside>
         <main class="app-main">
             <nav class="navbar app-navbar mb-4">
                 <div class="container-fluid px-0">
                     <div class="topbar-grid">
                         <div>
-                            <p class="top-caption mb-1">Panel operativo</p>
+                            <p class="top-caption mb-1">Vista en linea</p>
                             <h2 class="top-title mb-0"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></h2>
                         </div>
 
@@ -94,7 +101,7 @@ $assetVersion = is_file($assetFile)
 
                     <div class="top-meta-row mt-3">
                         <span class="badge connection-badge"><i class="fa-solid fa-database me-1"></i><?= htmlspecialchars($connectionLabel, ENT_QUOTES, 'UTF-8'); ?></span>
-                        <span class="top-meta-chip"><i class="fa-solid fa-wave-square"></i> Seguimiento diario activo</span>
+                        <span class="top-meta-chip"><i class="fa-solid fa-wave-square"></i> Flujo monitoreado</span>
                     </div>
                 </div>
             </nav>

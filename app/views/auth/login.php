@@ -24,7 +24,7 @@ $cssHref = asset_url('css/app.css');
         <section class="login-clean-panel" aria-label="Acceso al sistema">
             <header class="login-clean-header">
                 <p class="login-clean-kicker">Acceso Seguro</p>
-                <h1 class="login-clean-title">SistemaMultiBD</h1>
+                <h1 class="login-clean-title">Proyecto Tecnologias</h1>
                 <p class="login-clean-subtitle">Plataforma de gestion interna multi base de datos.</p>
             </header>
 
