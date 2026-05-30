@@ -46,8 +46,8 @@
             didOpen: function () {
                 Swal.showLoading();
             },
-            background: '#fff5f8',
-            color: '#7e2a7a',
+            background: '#ffffff',
+            color: '#0f172a',
         });
     }
 
@@ -82,6 +82,29 @@
             return;
         }
 
+        const bgPalette = [
+            'rgba(15, 118, 110, 0.25)',
+            'rgba(14, 116, 144, 0.22)',
+            'rgba(8, 145, 178, 0.2)',
+            'rgba(56, 189, 248, 0.24)',
+            'rgba(245, 158, 11, 0.24)',
+            'rgba(249, 115, 22, 0.24)',
+            'rgba(220, 38, 38, 0.2)',
+        ];
+
+        const borderPalette = [
+            'rgba(15, 118, 110, 0.9)',
+            'rgba(14, 116, 144, 0.9)',
+            'rgba(8, 145, 178, 0.9)',
+            'rgba(56, 189, 248, 0.9)',
+            'rgba(245, 158, 11, 0.9)',
+            'rgba(249, 115, 22, 0.9)',
+            'rgba(220, 38, 38, 0.9)',
+        ];
+
+        const lineTension = type === 'line' ? 0.35 : 0.18;
+        const shouldFill = type === 'line';
+
         const config = {
             type: type,
             data: {
@@ -91,23 +114,38 @@
                     data: values,
                     borderWidth: 2,
                     borderRadius: 8,
-                    backgroundColor: [
-                        'rgba(255, 105, 180, 0.42)',
-                        'rgba(157, 78, 221, 0.42)',
-                        'rgba(200, 162, 200, 0.45)',
-                        'rgba(255, 182, 193, 0.55)',
-                        'rgba(214, 122, 198, 0.45)',
-                        'rgba(237, 162, 232, 0.4)',
-                        'rgba(255, 145, 187, 0.5)',
-                    ],
-                    borderColor: 'rgba(128, 45, 120, 0.95)'
+                    backgroundColor: type === 'line' ? 'rgba(20, 184, 166, 0.18)' : bgPalette,
+                    borderColor: type === 'line' ? 'rgba(15, 118, 110, 0.95)' : borderPalette,
+                    pointBackgroundColor: 'rgba(15, 118, 110, 1)',
+                    pointRadius: type === 'line' ? 3 : 0,
+                    pointHoverRadius: type === 'line' ? 5 : 0,
+                    tension: lineTension,
+                    fill: shouldFill,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: type !== 'bar' }
+                    legend: {
+                        display: type !== 'bar',
+                        labels: {
+                            color: '#334155',
+                            boxWidth: 14,
+                            boxHeight: 14,
+                        }
+                    }
+                },
+                scales: type === 'doughnut' ? {} : {
+                    x: {
+                        ticks: { color: '#64748b' },
+                        grid: { color: 'rgba(148, 163, 184, 0.22)' },
+                    },
+                    y: {
+                        ticks: { color: '#64748b' },
+                        grid: { color: 'rgba(148, 163, 184, 0.22)' },
+                        beginAtZero: true,
+                    }
                 }
             }
         };
@@ -247,9 +285,9 @@
                     showCancelButton: true,
                     confirmButtonText: 'Si, eliminar',
                     cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#9D4EDD',
+                    confirmButtonColor: '#be123c',
                     cancelButtonColor: '#6c757d',
-                    background: '#fff5f8',
+                    background: '#ffffff',
                 });
 
                 if (!result.isConfirmed) {

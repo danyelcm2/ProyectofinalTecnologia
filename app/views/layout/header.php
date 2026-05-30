@@ -17,7 +17,7 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/app.css'), ENT_QUOTES, 'UTF-8'); ?>?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8'); ?>">
 </head>
 <body>
@@ -25,52 +25,73 @@ $assetVersion = (string) @filemtime(__DIR__ . '/../../../assets/css/app.css');
     <div class="dashboard-shell">
         <aside class="app-sidebar">
             <div class="sidebar-brand">
-                <h1 class="brand-title">SistemaMultiBD</h1>
-                <p class="brand-subtitle">Administracion de negocio</p>
+                <span class="brand-mark">SM</span>
+                <div>
+                    <h1 class="brand-title">SistemaMultiBD</h1>
+                    <p class="brand-subtitle">Control de operacion</p>
+                </div>
             </div>
-            <nav class="nav flex-column gap-2 mt-4">
+            <nav class="nav flex-column gap-2 mt-4 sidebar-nav">
                 <a class="sidebar-link <?= $active === 'dashboard' ? 'active' : ''; ?>" href="index.php?page=dashboard">
-                    <i class="fa-solid fa-house"></i> Dashboard
+                    <span class="sidebar-link-icon"><i class="fa-solid fa-house"></i></span>
+                    <span>Dashboard</span>
                 </a>
                 <a class="sidebar-link <?= $active === 'productos' ? 'active' : ''; ?>" href="index.php?page=productos">
-                    <i class="fa-solid fa-box-open"></i> Productos
+                    <span class="sidebar-link-icon"><i class="fa-solid fa-box-open"></i></span>
+                    <span>Productos</span>
                 </a>
                 <a class="sidebar-link <?= $active === 'ventas' ? 'active' : ''; ?>" href="index.php?page=ventas">
-                    <i class="fa-solid fa-credit-card"></i> Ventas
+                    <span class="sidebar-link-icon"><i class="fa-solid fa-credit-card"></i></span>
+                    <span>Ventas</span>
                 </a>
                 <a class="sidebar-link <?= $active === 'clientes' ? 'active' : ''; ?>" href="index.php?page=clientes">
-                    <i class="fa-solid fa-user"></i> Clientes
+                    <span class="sidebar-link-icon"><i class="fa-solid fa-user"></i></span>
+                    <span>Clientes</span>
                 </a>
                 <a class="sidebar-link <?= $active === 'detalle_ventas' ? 'active' : ''; ?>" href="index.php?page=detalle_ventas">
-                    <i class="fa-solid fa-box"></i> Pedidos
+                    <span class="sidebar-link-icon"><i class="fa-solid fa-box"></i></span>
+                    <span>Pedidos</span>
                 </a>
                 <a class="sidebar-link" href="#">
-                    <i class="fa-solid fa-user-circle"></i> Usuarios
+                    <span class="sidebar-link-icon"><i class="fa-solid fa-user-circle"></i></span>
+                    <span>Usuarios</span>
                 </a>
                 <a class="sidebar-link <?= $active === 'connections' ? 'active' : ''; ?>" href="index.php?page=connections">
-                    <i class="fa-solid fa-gear"></i> Configuracion
+                    <span class="sidebar-link-icon"><i class="fa-solid fa-gear"></i></span>
+                    <span>Configuracion</span>
                 </a>
                 <a class="sidebar-link" href="index.php?page=logout">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Salir
+                    <span class="sidebar-link-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                    <span>Salir</span>
                 </a>
             </nav>
 
-            <div class="sidebar-decoration">Panel principal</div>
+            <div class="sidebar-decoration">Actualizacion en tiempo real</div>
         </aside>
         <main class="app-main">
             <nav class="navbar app-navbar mb-4">
-                <div class="container-fluid px-0 topbar-grid">
-                    <span class="badge connection-badge"><i class="fa-solid fa-database me-1"></i><?= htmlspecialchars($connectionLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                <div class="container-fluid px-0">
+                    <div class="topbar-grid">
+                        <div>
+                            <p class="top-caption mb-1">Panel operativo</p>
+                            <h2 class="top-title mb-0"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></h2>
+                        </div>
 
-                    <div class="top-search-wrap">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="search" class="top-search" placeholder="Buscar...">
+                        <div class="top-search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="search" class="top-search" placeholder="Buscar cliente, venta o producto">
+                        </div>
+
+                        <div class="top-user">
+                            <button class="top-icon-btn" type="button" aria-label="Notificaciones"><i class="fa-solid fa-bell"></i></button>
+                            <span class="top-avatar"><i class="fa-solid fa-user"></i></span>
+                            <span class="top-user-name"><?= htmlspecialchars((string) $user['name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                        </div>
                     </div>
 
-                    <div class="top-user">
-                        <button class="top-icon-btn" type="button" aria-label="Notificaciones"><i class="fa-solid fa-bell"></i></button>
-                        <span class="top-avatar"><i class="fa-solid fa-user"></i></span>
-                        <span class="top-user-name"><?= htmlspecialchars((string) $user['name'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    <div class="top-meta-row mt-3">
+                        <span class="badge connection-badge"><i class="fa-solid fa-database me-1"></i><?= htmlspecialchars($connectionLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                        <span class="top-meta-chip"><i class="fa-solid fa-wave-square"></i> Seguimiento diario activo</span>
                     </div>
                 </div>
             </nav>
